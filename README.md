@@ -88,12 +88,19 @@ With no Railway dashboard, the deployment is shown through the swarm itself:
 
 ![Swarm containers running](assets/images/ptr-containers.jpg)
 
+#### Live API - authentication
 ![Live API - authentication](assets/images/bruno-api-auth-login.jpg)
+
+#### Live API - Get all tasks (with JWT token)
 ![Live API - get all tasks - with token](assets/images/bruno-api-tasks-all.jpg)
+
+#### Live API - Create task (with JWT token)
 ![Live API - create task - with token](assets/images/bruno-api-tasks-create.jpg)
 
+#### Docker Hub - User Service - Tags
 ![Docker Hub tags](assets/images/docker-users-tags.jpg)
 
+#### GitHub Actions - Pipeline
 ![Successful pipeline run](assets/images/gha-users-pipeline.jpg)
 
 ![Frontend showing tasks](screenshots/frontend.png)
