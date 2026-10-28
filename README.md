@@ -17,6 +17,15 @@ This document serves as the starting point for the TaskFlow project. It begins w
 | Understand the CI/CD pipeline | [Users API deployment (CI/CD)][users-deploy], [Tasks API deployment (CI/CD)][tasks-deploy] |
 | Understand the security checks in CI | [Users security checks][users-security], [Tasks security checks][tasks-security] |
 
+## Repositories
+
+| Repository | What it holds | Runs as |
+|---|---|---|
+| [sctp-aie-m4-assignment-api-users][repo-users] | Users API: login, user management, JWT signing | `ensanguine/user-service` image on the swarm |
+| [sctp-aie-m4-assignment-api-tasks][repo-tasks] | Tasks API: task endpoints, JWT verification | `ensanguine/task-service` image on the swarm |
+| [sctp-aie-m4-assignment-web][repo-web] | Next.js web app and BFF | <https://taskmaster-hakngrow.vercel.app> |
+| [sctp-aie-m4-assignment-swarm][repo-swarm] | Swarm design, setup guide, runbook, stack files, Caddyfile, Terraform | Three GCP VMs behind `https://sctp-aie-m4-apigw.work.gd` |
+
 ---
 
 ## 1. The assignment
@@ -448,3 +457,8 @@ Details: [users CI/CD pipeline][users-deploy], [tasks CI/CD pipeline][tasks-depl
 [tasks-compose]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/README-docker-compose.md
 
 [web-readme]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-web/blob/main/README.md
+
+[repo-users]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users
+[repo-tasks]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks
+[repo-web]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-web
+[repo-swarm]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-swarm
