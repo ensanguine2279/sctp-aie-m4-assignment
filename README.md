@@ -66,7 +66,7 @@ The brief asks for one stretch goal. Four were taken on, and they build on each 
 | 1. CI pipeline to Docker Hub | Done | GitHub Actions: tests and security scans, release, build and push to Docker Hub, then deploy to the swarm. Docker Hub credentials are repository secrets | [Users API CI/CD pipeline][users-deploy], [Tasks API CI/CD pipeline][tasks-deploy], [Section 4.4](#44-cicd-and-the-security-gate). Successful run: `<add link>`, [User service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/user-service/general), [Task service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/task-service/general) |
 | 2. Frontend | Done, on **Vercel instead of Netlify** | Next.js app with a BFF. The browser only talks to Vercel and the BFF calls the APIs server-side, so the APIs need no CORS configuration | [Web app README][web-readme]. Frontend URL: <https://taskmaster-hakngrow.vercel.app> (Login required) |
 | 3. Simple CRM instead of TaskFlows | Not taken | | |
-| 4. Versioned images | Done | semantic-release derives `MAJOR.MINOR.PATCH` from commit messages; images are also tagged with the commit SHA, and the swarm deploys by digest | Section 4.4. Docker Hub tags screenshot in [Section 1.5](#15-live-url-and-screenshots) |
+| 4. Versioned images | Done | semantic-release derives `MAJOR.MINOR.PATCH` from commit messages; images are also tagged with the commit SHA, and the swarm deploys by digest | [Section 4.4](#44-cicd-and-the-security-gate). Docker Hub tags screenshot in [Section 1.5](#15-live-url-and-screenshots) |
 | 5. Security checks | Done for the users service; tasks API files ready, rollout pending | OWASP Dependency-Check, Trivy image scan, gitleaks over the whole history, and a project script that fails on committed keys, `.env` files or default secrets. All run in CI and gate the release | [Users security checks][users-security], [Tasks security checks][tasks-security] |
 
 Beyond the brief: two cooperating services with asymmetric JWTs, two replicas of each API across three nodes, rolling updates with automatic rollback, HTTPS, and optional Terraform for the infrastructure.
@@ -111,9 +111,9 @@ The brief asks for errors and failures to be reported. The main ones, and how ea
 
 | What went wrong | Outcome | Details |
 |---|---|---|
-| Railway outage and security incident | Deployment moved to a self-managed Docker Swarm | Section 3.2 |
-| Play with Docker deprecated | Not usable as a free swarm host | Section 3.2 |
-| Oracle Cloud free tier: `500-InternalError, Out of host capacity` | No free ARM VMs could be created; moved to the GCP free trial | Section 3.2 |
+| Railway outage and security incident | Deployment moved to a self-managed Docker Swarm | [Section 3.2](#32-how-the-platform-was-chosen) |
+| Play with Docker deprecated | Not usable as a free swarm host | [Section 3.2](#32-how-the-platform-was-chosen) |
+| Oracle Cloud free tier: `500-InternalError, Out of host capacity` | No free ARM VMs could be created; moved to the GCP free trial | [Section 3.2](#32-how-the-platform-was-chosen) |
 | Trivy: CVEs in `curl`, `libcurl` and `brotli-libs` in the runtime image | Removed `curl`, switched the health check to BusyBox `wget`, `apk upgrade` on every build | [Users security checks][users-security] |
 | Dependency-Check: Spring Boot 4.1.1 ships Tomcat 11.0.24 with 11 CVEs | Upgraded to Spring Boot 4.1.2 | [Users security checks][users-security] |
 | `aquasecurity/trivy-action` tags hijacked (GHSA-69fq-xp46-6x23) | Action pinned by commit SHA | [Users security checks][users-security] |
@@ -164,7 +164,7 @@ This section summarises the reasoning. The full version, with every trade-off, i
 
 ### 3.1 Why two services and not one
 
-Splitting the application along a security boundary gives a natural microservice cut: one service *issues* identity, the other *consumes* it. That split also drives the key design (section 3.4), so the architecture and the security model reinforce each other rather than being two separate concerns.
+Splitting the application along a security boundary gives a natural microservice cut: one service *issues* identity, the other *consumes* it. That split also drives the key design ([Section 3.4](#34-security-model)), so the architecture and the security model reinforce each other rather than being two separate concerns.
 
 ### 3.2 How the platform was chosen
 
@@ -224,7 +224,7 @@ Details: [users authentication][user-auth], [tasks authentication][tasks-auth], 
 | D12 | Front end stays on Vercel | Already working, no VM load | Caddy sees Vercel IPs only |
 | D13 | Free domain from DNSExit | HTTPS at no cost | Depends on the provider's terms |
 
-Each decision is explained in full in the [design document][swarm-design], section 4.
+Each decision is explained in full in the [design document][swarm-design], [Section 4](#4-architectural-implementation).
 
 ---
 
@@ -325,8 +325,8 @@ Details: [users CI/CD pipeline][users-deploy], [tasks CI/CD pipeline][tasks-depl
 | `swarm-3` | Manager | API replicas, Portainer server, Portainer agent |
 
 - **VMs, firewall, swarm:** built by hand following the [setup guide][swarm-setup], or by `terraform apply` with the [Terraform project][terraform]. Env files and JWT keys are created by hand on `swarm-1` in both cases, so they never enter Terraform state.
-- **Caddy** terminates HTTPS with a Let's Encrypt certificate, routes `/api/tasks*` to the tasks API and everything else to the users service, and returns 404 for `/actuator*`. See the [setup guide][swarm-setup], section 8.
-- **Portainer** gives a visual view of replicas and failover for the demo, reachable only through an SSH tunnel to `swarm-3`. See the [setup guide][swarm-setup], section 9.
+- **Caddy** terminates HTTPS with a Let's Encrypt certificate, routes `/api/tasks*` to the tasks API and everything else to the users service, and returns 404 for `/actuator*`. See the [setup guide][swarm-setup].
+- **Portainer** gives a visual view of replicas and failover for the demo, reachable only through an SSH tunnel to `swarm-3`. See the [setup guide][swarm-setup].
 
 ---
 
