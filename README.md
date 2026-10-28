@@ -9,7 +9,6 @@ This document serves as the starting point for the TaskFlow project. It begins w
 | Understand the whole project in one pass | This document |
 | See why the deployment looks the way it does | [Swarm design and motivation][swarm-design] |
 | Deploy, run a failover drill or tear down | [Swarm architecture and runbook][swarm-runbook] |
-
 | Rebuild the environment from nothing | [Swarm setup guide][swarm-setup] |
 | Create the VMs and swarm with Terraform | [Terraform README][swarm-terraform] |
 | Work on the login and token-signing service | [Users service README][users-readme], [authentication][users-auth] |
