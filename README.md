@@ -64,8 +64,8 @@ The brief asks for one stretch goal. Four were taken on, and they build on each 
 | Option | Status | What was built | Evidence |
 |---|---|---|---|
 | 1. CI pipeline to Docker Hub | Done | GitHub Actions: tests and security scans, release, build and push to Docker Hub, then deploy to the swarm. Docker Hub credentials are repository secrets | [Users API CI/CD pipeline](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-deployment.md), [Tasks API CI/CD pipeline](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/README-deployment.md), section 4.4. Successful run: `<add link>`, [User service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/user-service/general), [Task service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/task-service/general) |
-| 2. Frontend | Done, on **Vercel instead of Netlify** | Next.js app with a BFF. The browser only talks to Vercel and the BFF calls the APIs server-side, so the APIs need no CORS configuration | [Web app README](https://github.com/ensanguine2279/sctp-aie-m4-assignment-web). Frontend URL: [`https://taskmaster-hakngrow.vercel.app/`](https://taskmaster-hakngrow.vercel.app/) (Login required) |
-| 3. Simple CRM instead of TaskFlow | Not taken | | |
+| 2. Frontend | Done, on **Vercel instead of Netlify** | Next.js app with a BFF. The browser only talks to Vercel and the BFF calls the APIs server-side, so the APIs need no CORS configuration | [Web app README](https://github.com/ensanguine2279/sctp-aie-m4-assignment-web). Frontend URL: <`https://taskmaster-hakngrow.vercel.app/`> (Login required) |
+| 3. Simple CRM instead of TaskFlows | Not taken | | |
 | 4. Versioned images | Done | semantic-release derives `MAJOR.MINOR.PATCH` from commit messages; images are also tagged with the commit SHA, and the swarm deploys by digest | Section 4.4. Docker Hub tags screenshot in section 1.5 |
 | 5. Security checks | Done for the users service; tasks API files ready, rollout pending | OWASP Dependency-Check, Trivy image scan, gitleaks over the whole history, and a project script that fails on committed keys, `.env` files or default secrets. All run in CI and gate the release | [Users security checks](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-security-checks.md), [Tasks security checks](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/README-security-checks.md) |
 
@@ -75,10 +75,10 @@ Beyond the brief: two cooperating services with asymmetric JWTs, two replicas of
 - **Authentication Endpoint** `https://sctp-aie-m4-apigw.work.gd/auth/login`
 - **Live API:** `https://sctp-aie-m4-apigw.work.gd/api/users` (attach a BEARER token from `POST /auth/login`)
 - **Live API:** `https://sctp-aie-m4-apigw.work.gd/api/tasks` (attach a BEARER token from `POST /auth/login`)
-- **OpenAPI Specification** [open-api-spec.yaml](open-api-spec.yaml)
+- **OpenAPI Specification:** [open-api-spec.yaml](open-api-spec.yaml)
 - **Frontend:** <https://taskmaster-hakngrow.vercel.app/login>
 
-With no Railway dashboard, the deployment is shown through the swarm itself:
+With no Railway dashboard, the deployment is shown through the swarm itself via Portainer:
 
 ![Portainer dashboard](assets/images/ptr-dashboard.jpg)
 
@@ -119,7 +119,7 @@ The brief asks for errors and failures to be reported. The main ones, and how ea
 | `aquasecurity/trivy-action` tags hijacked (GHSA-69fq-xp46-6x23) | Action pinned by commit SHA | [Users security checks][users-security] |
 | NVD API key request form hung | Dependency-Check uses its own NVD mirror instead | [Users security checks][users-security] |
 
-Smaller issues hit along the way are recorded as gotchas in [PROJECT-CONTEXT][project-context], section 8.
+Smaller issues hit along the way are recorded as gotchas in their respective [documents](#7-full-document-index).
 
 ---
 
