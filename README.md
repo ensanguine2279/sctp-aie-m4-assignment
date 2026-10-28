@@ -72,11 +72,8 @@ The brief asks for one stretch goal. Four were taken on, and they build on each 
 Beyond the brief: two cooperating services with asymmetric JWTs, two replicas of each API across three nodes, rolling updates with automatic rollback, HTTPS, and optional Terraform for the infrastructure.
 
 ### 1.5 Live URL and screenshots
-- **Authentication Endpoint:** `https://sctp-aie-m4-apigw.work.gd/auth/login`
-- **Live API:** `https://sctp-aie-m4-apigw.work.gd/api/users` (attach a BEARER token from `POST /auth/login`)
-- **Live API:** `https://sctp-aie-m4-apigw.work.gd/api/tasks` (attach a BEARER token from `POST /auth/login`)
-- **OpenAPI Specification:** [open-api-spec.yaml](open-api-spec.yaml)
-- **Frontend:** <https://taskmaster-hakngrow.vercel.app/login>
+
+- **Deployment:** `https://localhost:9443` via SSH tunneling 
 
 With no Railway dashboard, the deployment is shown through the swarm itself via Portainer:
 
@@ -88,6 +85,11 @@ With no Railway dashboard, the deployment is shown through the swarm itself via 
 
 ![Swarm containers running](assets/images/ptr-containers.jpg)
 
+- **Authentication Endpoint:** `https://sctp-aie-m4-apigw.work.gd/auth/login`
+- **Live API:** `https://sctp-aie-m4-apigw.work.gd/api/users` (attach a BEARER token from `POST /auth/login`)
+- **Live API:** `https://sctp-aie-m4-apigw.work.gd/api/tasks` (attach a BEARER token from `POST /auth/login`)
+- **OpenAPI Specification:** [open-api-spec.yaml](open-api-spec.yaml)
+
 #### Live API - authentication
 ![Live API - authentication](assets/images/bruno-api-auth-login.jpg)
 
@@ -98,10 +100,22 @@ With no Railway dashboard, the deployment is shown through the swarm itself via 
 ![Live API - create task - with token](assets/images/bruno-api-tasks-create.jpg)
 
 #### Docker Hub - User Service - Tags
+
+- **Users Repository:** <https://hub.docker.com/repository/docker/ensanguine/user-service/general>
 ![Docker Hub tags](assets/images/docker-users-tags.jpg)
 
+- **Tasks Repository:** <https://hub.docker.com/repository/docker/ensanguine/user-service/general>
+![Docker Hub tags](assets/images/docker-tasks-tags.jpg)
+
 #### GitHub Actions - Pipeline
+
+- **Users CI/CD Pipeline:** <https://hub.docker.com/repository/docker/ensanguine/user-service/general>
 ![Successful pipeline run](assets/images/gha-users-pipeline.jpg)
+
+- **Tasks CI/CD Pipeline:** <https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/actions/runs/40508417611>
+![Successful pipeline run](assets/images/gha-tasks-pipeline.jpg)
+
+- **Frontend:** <https://taskmaster-hakngrow.vercel.app/login>
 
 ![Frontend showing tasks](screenshots/frontend.png)
 
