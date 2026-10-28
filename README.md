@@ -337,7 +337,7 @@ Details: [users CI/CD pipeline][users-deploy], [tasks CI/CD pipeline][tasks-depl
 | Code | Unit, controller, ownership and end-to-end tests (`mvn test`) | [Users README][users-readme], [Tasks README][tasks-readme] |
 | Running stack | Smoke tests against the real containers, including forged tokens (tampered, unsigned, HS256, wrong key, wrong issuer, wrong audience, expired) | [Tasks authentication][tasks-auth] |
 | Supply chain | gitleaks, Dependency-Check, Trivy, `security-check.sh` on every push | [Users security][users-security], [Tasks security][tasks-security] |
-| Cluster | Node, replica, placement, HTTPS, closed ports and failover checks | [Setup guide][swarm-setup], section 10 |
+| Cluster | Node, replica, placement, HTTPS, closed ports and failover checks | [Setup guide][swarm-setup] |
 | Failover drill | Stop a node, watch replicas reschedule | [Runbook][swarm-runbook] |
 
 ---
@@ -361,16 +361,16 @@ The project's working status and open items are tracked in [PROJECT-CONTEXT][pro
 
 | Area | Document | Covers |
 |---|---|---|
-| Project | [PROJECT-CONTEXT][project-context] | Status, settled decisions, conventions, gotchas |
 | Deployment | [Swarm design and motivation][swarm-design] | Why the deployment looks the way it does |
 | Deployment | [Swarm setup guide][swarm-setup] | Building the environment step by step |
 | Deployment | [Swarm architecture and runbook][swarm-runbook] | Day-to-day operations |
-| Deployment | [Terraform README][terraform] | Infrastructure as code |
-| Users service | [README][users-readme] | Overview, configuration, running |
-| Users service | [README-authentication][users-auth] | RS256 signing, key loading, token contract |
-| Users service | [README-security-checks][users-security] | CI security gate and first-run findings |
-| Users service | [README-Dockerfile][users-dockerfile] | Image build |
-| Users service | [README-docker-compose][users-compose] | Local stack |
+| Deployment | [Terraform README][swarm-terraform] | Infrastructure as code |
+| Users API | [README][users-readme] | Overview, configuration, running |
+| Users API | [README-authentication][users-auth] | RS256 signing, key loading, token contract |
+| Users API | [README-deployment][users-deploy] | CI/CD pipeline |
+| Users API | [README-security-checks][users-security] | CI security gate and first-run findings |
+| Users API | [README-Dockerfile][users-dockerfile] | Image build |
+| Users API | [README-docker-compose][users-compose] | Local stack |
 | Tasks API | [README][tasks-readme] | Overview, endpoints, running |
 | Tasks API | [README-authentication][tasks-auth] | Verification, roles, ownership, smoke test |
 | Tasks API | [README-deployment][tasks-deploy] | CI/CD pipeline |
