@@ -8,13 +8,14 @@ This document serves as the starting point for the TaskFlow project. It begins w
 |---|---|
 | Understand the whole project in one pass | This document |
 | See why the deployment looks the way it does | [Swarm design and motivation][swarm-design] |
-| Rebuild the environment from nothing | [Swarm setup guide][swarm-setup] |
 | Deploy, run a failover drill or tear down | [Swarm architecture and runbook][swarm-runbook] |
-| Create the VMs and swarm with Terraform | [Terraform README][terraform] |
+
+| Rebuild the environment from nothing | [Swarm setup guide][swarm-setup] |
+| Create the VMs and swarm with Terraform | [Terraform README][swarm-terraform] |
 | Work on the login and token-signing service | [Users service README][users-readme], [authentication][users-auth] |
 | Work on the task service | [Tasks API README][tasks-readme], [authentication][tasks-auth] |
 | Work on the web front end | [Web app README][web-readme] |
-| Understand the CI/CD pipeline | [Tasks API deployment (CI/CD)][tasks-deploy] |
+| Understand the CI/CD pipeline | [Users API deployment (CI/CD)][users-deploy], [Tasks API deployment (CI/CD)][tasks-deploy] |
 | Understand the security checks in CI | [Users security checks][users-security], [Tasks security checks][tasks-security] |
 
 ---
@@ -42,9 +43,9 @@ The brief's subject is **DevOps: containers, pipelines and deployment**. These p
 
 | Part | Role | Technology | Docs |
 |---|---|---|---|
-| **Users service** | Login, user management; signs JWTs with an RSA private key | Spring Boot 4.1, Spring Security 7, JJWT 0.13, PostgreSQL 16 | [README](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users) |
-| **Tasks API** | The TaskFlow task endpoints; only *verifies* JWTs with the public key | Spring Boot 4.1, Spring Security 7, JJWT 0.13, PostgreSQL 16 | [README](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks) |
-| **Web app** | User interface with a backend-for-frontend (BFF) that calls both APIs | Next.js on Vercel | [README](https://github.com/ensanguine2279/sctp-aie-m4-assignment-web) |
+| **Users service** | Login, user management; signs JWTs with an RSA private key | Spring Boot 4.1, Spring Security 7, JJWT 0.13, PostgreSQL 16 | [README][users-readme] |
+| **Tasks API** | The TaskFlow task endpoints; only *verifies* JWTs with the public key | Spring Boot 4.1, Spring Security 7, JJWT 0.13, PostgreSQL 16 | [README][tasks-readme] |
+| **Web app** | User interface with a backend-for-frontend (BFF) that calls both APIs | Next.js on Vercel | [README][web-readme] |
 
 Each API has its own codebase, container image, database, pipeline and release cycle. A change to one is built, tested, versioned and deployed without touching the other, which is the point a single monolith could not make.
 
@@ -53,9 +54,9 @@ Each API has its own codebase, container image, database, pipeline and release c
 | Task | Brief | What was done | Where to look |
 |---|---|---|---|
 | 1. Dockerfile | Multi-stage `Dockerfile` given in the brief | Kept the two-stage pattern and hardened the runtime stage: non-root user, `apk upgrade` on every build, no `curl`, a liveness health check, and each service's own port (8022, 8077) instead of 8080 | [Users Dockerfile](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/Dockerfile), [Tasks Dockerfile](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/Dockerfile) |
-| 2. Build and test locally | `docker build`, `docker run`, `curl /api/tasks` | Each API runs locally with Docker Compose, its own Postgres, and its JWT key mounted as a secret. `/api/tasks` needs a token, so a bare `curl` returns 401; the smoke test logs in first, exercises the endpoints and checks that forged tokens are rejected | [Users compose](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/docker-compose.yml), [Tasks compose](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/docker-compose.yml), [Users authentication](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-authentication.md), [Tasks authentication](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/docker-compose.yml) |
-| 3. Deploy to Railway | Deploy from GitHub, generate a domain | **Railway was the plan, but it had an outage and a security incident.** The deployment moved to a three-node Docker Swarm on Google Cloud, behind Caddy with HTTPS (section 3.2) | [Swarm design](),  [Swarm setup](https://github.com/ensanguine2279/sctp-aie-m4-assignment-swarm) |
-| 4. Verify the deployment | `curl` the live URL, screenshots | Live at `https://sctp-aie-m4-apigw.work.gd/api/tasks` (token required). Screenshots in section 1.5 | Section 5 |
+| 2. Build and test locally | `docker build`, `docker run`, `curl /api/tasks` | Each API runs locally with Docker Compose, its own Postgres, and its JWT key mounted as a secret. `/api/tasks` needs a token, so a bare `curl` returns 401; the smoke test logs in first, exercises the endpoints and checks that forged tokens are rejected | [Users compose](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/docker-compose.yml), [Tasks compose](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/docker-compose.yml), [Users authentication][users-auth], [Tasks authentication][tasks-auth] |
+| 3. Deploy to Railway | Deploy from GitHub, generate a domain | **Railway was the plan, but it had an outage and a security incident.** The deployment moved to a three-node Docker Swarm on Google Cloud, behind Caddy with HTTPS (section 3.2) | [Swarm design][],  [Swarm setup][swarm-setup] |
+| 4. Verify the deployment | `curl` the live URL, screenshots | Live at <https://sctp-aie-m4-apigw.work.gd/api/tasks> (token required). Screenshots in section 1.5 | Section 5 |
 
 ### 1.4 Stretch goals
 
@@ -63,11 +64,11 @@ The brief asks for one stretch goal. Four were taken on, and they build on each 
 
 | Option | Status | What was built | Evidence |
 |---|---|---|---|
-| 1. CI pipeline to Docker Hub | Done | GitHub Actions: tests and security scans, release, build and push to Docker Hub, then deploy to the swarm. Docker Hub credentials are repository secrets | [Users API CI/CD pipeline](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-deployment.md), [Tasks API CI/CD pipeline](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/README-deployment.md), section 4.4. Successful run: `<add link>`, [User service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/user-service/general), [Task service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/task-service/general) |
-| 2. Frontend | Done, on **Vercel instead of Netlify** | Next.js app with a BFF. The browser only talks to Vercel and the BFF calls the APIs server-side, so the APIs need no CORS configuration | [Web app README](https://github.com/ensanguine2279/sctp-aie-m4-assignment-web). Frontend URL: <`https://taskmaster-hakngrow.vercel.app/`> (Login required) |
+| 1. CI pipeline to Docker Hub | Done | GitHub Actions: tests and security scans, release, build and push to Docker Hub, then deploy to the swarm. Docker Hub credentials are repository secrets | [Users API CI/CD pipeline][users-deploy], [Tasks API CI/CD pipeline][tasks-deploy], section 4.4. Successful run: `<add link>`, [User service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/user-service/general), [Task service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/task-service/general) |
+| 2. Frontend | Done, on **Vercel instead of Netlify** | Next.js app with a BFF. The browser only talks to Vercel and the BFF calls the APIs server-side, so the APIs need no CORS configuration | [Web app README][web-readme]. Frontend URL: <https://taskmaster-hakngrow.vercel.app> (Login required) |
 | 3. Simple CRM instead of TaskFlows | Not taken | | |
 | 4. Versioned images | Done | semantic-release derives `MAJOR.MINOR.PATCH` from commit messages; images are also tagged with the commit SHA, and the swarm deploys by digest | Section 4.4. Docker Hub tags screenshot in section 1.5 |
-| 5. Security checks | Done for the users service; tasks API files ready, rollout pending | OWASP Dependency-Check, Trivy image scan, gitleaks over the whole history, and a project script that fails on committed keys, `.env` files or default secrets. All run in CI and gate the release | [Users security checks](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-security-checks.md), [Tasks security checks](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/README-security-checks.md) |
+| 5. Security checks | Done for the users service; tasks API files ready, rollout pending | OWASP Dependency-Check, Trivy image scan, gitleaks over the whole history, and a project script that fails on committed keys, `.env` files or default secrets. All run in CI and gate the release | [Users security checks][users-security], [Tasks security checks][tasks-security] |
 
 Beyond the brief: two cooperating services with asymmetric JWTs, two replicas of each API across three nodes, rolling updates with automatic rollback, HTTPS, and optional Terraform for the infrastructure.
 
@@ -181,7 +182,7 @@ flowchart LR
 
 Cost was the main constraint. The GCP free trial (US$300, 90 days) covers three `e2-medium` VMs, as long as the environment is torn down before the trial ends. Three VMs matter more than their size: a Swarm manager quorum needs a majority alive, so three is the smallest cluster that survives losing a node.
 
-The Railway plan left one lasting trace in the code: the users service can take its private key as `JWT_PRIVATE_KEY_BASE64`, for platforms that cannot mount files. See [users authentication][users-auth].
+The Railway plan left one lasting trace in the code: the users service can take its private key as `JWT_PRIVATE_KEY_BASE64`, for platforms that cannot mount files. See [users authentication](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-authentication.md).
 
 ### 3.3 Why Swarm and not Kubernetes
 
@@ -204,7 +205,7 @@ The security design is the thread that runs through every layer:
 - **One public door.** Only Caddy (80, 443) and SSH (22) are reachable from the internet. Databases and Portainer are reached through SSH tunnels.
 - **The token never reaches browser JavaScript.** The BFF keeps it in an httpOnly cookie.
 
-Details: [users authentication][users-auth], [tasks authentication][tasks-auth], [web app][web-readme].
+Details: [users authentication](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-authentication.md), [tasks authentication](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/README-authentication.md), [web app](https://github.com/ensanguine2279/sctp-aie-m4-assignment-web).
 
 ### 3.5 Design decisions at a glance
 
@@ -244,7 +245,7 @@ The two APIs share a token contract. If they disagree on issuer or audience, eve
 | `roles` | strings starting with `ROLE_`, e.g. `["ROLE_ADMIN"]` |
 | `iat`, `exp` | default lifetime one hour |
 
-**Users service** issues and validates tokens, derives its public key from the private key at startup, and serves login and user management. See the [README][users-readme] and [authentication][users-auth] docs.
+**Users service** issues and validates tokens, derives its public key from the private key at startup, and serves login and user management. See the [README](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users) and [authentication](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-authentication.md) docs.
 
 **Tasks API** verifies tokens with the public key only, enforces the role matrix with `@PreAuthorize` and task ownership with `TaskAccessPolicy`, and accepts request DTOs (never the entity), so a client cannot set `id` or `userId`. See the [README][tasks-readme] and [authentication][tasks-auth] docs.
 
@@ -383,23 +384,23 @@ The project's working status and open items are tracked in [PROJECT-CONTEXT][pro
   Link targets. Replace <owner> and the repository names once, here, and every link above updates.
 -->
 
-[project-context]: https://github.com/<owner>/<docs-repo>/blob/main/PROJECT-CONTEXT.md
-[swarm-design]: https://github.com/<owner>/<infra-repo>/blob/main/docs/swarm-gcp-design.md
-[swarm-setup]: https://github.com/<owner>/<infra-repo>/blob/main/docs/swarm-gcp-setup-guide.md
-[swarm-runbook]: https://github.com/<owner>/<infra-repo>/blob/main/docs/swarm-architecture-runbook.md
-[terraform]: https://github.com/<owner>/<infra-repo>/blob/main/README.md
+[swarm-design]: 
+[swarm-setup]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-swarm/blob/main/README.md
+[swarm-runbook]: 
+[swarm-terraform]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-swarm/blob/main/terraform/README-terraform.md
 
-[users-readme]: https://github.com/<owner>/<users-repo>/blob/main/README.md
-[users-auth]: https://github.com/<owner>/<users-repo>/blob/main/README-authentication.md
-[users-security]: https://github.com/<owner>/<users-repo>/blob/main/README-security-checks.md
-[users-dockerfile]: https://github.com/<owner>/<users-repo>/blob/main/README-Dockerfile.md
-[users-compose]: https://github.com/<owner>/<users-repo>/blob/main/README-docker-compose.md
+[users-readme]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README.md
+[users-auth]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-authentication.md
+[users-deploy]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-deployment.md
+[users-security]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-security-checks.md
+[users-dockerfile]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-docker-compose.md
+[users-compose]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-Dockerfile.md
 
-[tasks-readme]: https://github.com/<owner>/<tasks-repo>/blob/main/README.md
-[tasks-auth]: https://github.com/<owner>/<tasks-repo>/blob/main/README-authentication.md
-[tasks-deploy]: https://github.com/<owner>/<tasks-repo>/blob/main/README-deployment.md
-[tasks-security]: https://github.com/<owner>/<tasks-repo>/blob/main/README-security-checks.md
-[tasks-dockerfile]: https://github.com/<owner>/<tasks-repo>/blob/main/README-Dockerfile.md
-[tasks-compose]: https://github.com/<owner>/<tasks-repo>/blob/main/README-docker-compose.md
+[tasks-readme]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/README.md
+[tasks-auth]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/README-authentication.md
+[tasks-deploy]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/README-deployment.md
+[tasks-security]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/README-security-checks.md
+[tasks-dockerfile]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/README-Dockerfile.md
+[tasks-compose]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/README-docker-compose.md
 
-[web-readme]: https://github.com/<owner>/<web-repo>/blob/main/README.md
+[web-readme]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-web/blob/main/README.md
