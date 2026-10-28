@@ -224,7 +224,7 @@ Details: [users authentication][users-auth], [tasks authentication][tasks-auth],
 | D12 | Front end stays on Vercel | Already working, no VM load | Caddy sees Vercel IPs only |
 | D13 | Free domain from DNSExit | HTTPS at no cost | Depends on the provider's terms |
 
-Each decision is explained in full in the [design document][swarm-design], [Section 4][swarm-design#4-design-decisions].
+Each decision is explained in full in the [design document][swarm-design], [Section 4][swarm-design-s4].
 
 ---
 
@@ -382,6 +382,7 @@ Details: [users CI/CD pipeline][users-deploy], [tasks CI/CD pipeline][tasks-depl
 -->
 
 [swarm-design]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-swarm/blob/main/README-design.md
+[swarm-design-s4]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-swarm/blob/main/README-design.md#4-design-decisions
 [swarm-setup]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-swarm/blob/main/README.md
 [swarm-runbook]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-swarm/blob/main/README-runbook.md
 [swarm-terraform]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-swarm/blob/main/terraform/README-terraform.md
