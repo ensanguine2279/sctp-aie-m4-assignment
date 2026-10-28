@@ -117,7 +117,29 @@ With no Railway dashboard, the deployment is shown through the swarm itself via 
 
 - **Frontend:** <https://taskmaster-hakngrow.vercel.app/login>
 
-![Frontend showing tasks](screenshots/frontend.png)
+#### Login page
+
+![Login page](assets/images/web-login.jpg)
+
+#### Users Directory page
+
+![Users Directory page](assets/images/web-users.jpg)
+
+#### Edit a user
+
+![Edit a user](assets/images/web-users-edit.jpg)
+
+#### Tasks Management page
+
+![Tasks Management page](assets/images/web-tasks.jpg)
+
+#### Create a task
+
+![Create a task](assets/images/web-tasks-create.jpg)
+
+#### Analytics page
+
+![Analytics page](assets/images/web-analytics.jpg)
 
 ### 1.6 Errors and failures
 
