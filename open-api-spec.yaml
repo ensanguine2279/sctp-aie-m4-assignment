@@ -1,0 +1,1917 @@
+openapi: 3.0.0
+info:
+  title: test
+  version: 1.0.0
+paths:
+  /api/tasks/{id}/complete:
+    patch:
+      summary: Complete task by id
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_tasks_complete_task_by_id_yml
+      description: ''
+      tags:
+        - Tasks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  title:
+                    type: string
+                  description:
+                    type: string
+                  priority:
+                    type: string
+                  completed:
+                    type: boolean
+                  userId:
+                    type: integer
+              example:
+                id: 2
+                title: Resolve bug in authentication module
+                description: >-
+                  Unexpected error occurs when user tries to login with valid
+                  credentials.
+                priority: HIGH
+                completed: true
+                userId: 2
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+              example:
+                message: Task with ID 3 not found
+                timestamp: '2026-10-17T08:36:37.358458553Z'
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+            format: int32
+          example: '3'
+      servers:
+        - url: https://sctp-aie-m4-apigw.work.gd
+  /api/tasks:
+    post:
+      summary: Create task
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_tasks_create_task_yml
+      description: ''
+      tags:
+        - Tasks
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  title:
+                    type: string
+                  description:
+                    type: string
+                  priority:
+                    type: string
+                  completed:
+                    type: boolean
+                  userId:
+                    type: integer
+              example:
+                id: 6
+                title: New title
+                description: New description
+                priority: HIGH
+                completed: false
+                userId: 2
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+              example:
+                message: 'userId: User is mandatory'
+                timestamp: '2026-10-16T13:13:47.777651773Z'
+      requestBody:
+        $ref: '#/components/requestBodies/create_task'
+      servers:
+        - url: https://sctp-aie-m4-apigw.work.gd
+    get:
+      summary: Get all tasks
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_tasks_get_all_tasks_yml
+      description: ''
+      tags:
+        - Tasks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    title:
+                      type: string
+                    description:
+                      type: string
+                    priority:
+                      type: string
+                    completed:
+                      type: boolean
+                    userId:
+                      type: integer
+              example:
+                - id: 1
+                  title: Refactor task manager service
+                  description: >-
+                    Team has decide to code to an interface for the service
+                    component.
+                  priority: MEDIUM
+                  completed: false
+                  userId: 1
+                - id: 2
+                  title: Resolve bug in authentication module
+                  description: >-
+                    Unexpected error occurs when user tries to login with valid
+                    credentials.
+                  priority: HIGH
+                  completed: false
+                  userId: 1
+                - id: 3
+                  title: Update project documentation
+                  description: >-
+                    Ensure that the project documentation is up-to-date with the
+                    latest changes.
+                  priority: LOW
+                  completed: false
+                  userId: 2
+                - id: 4
+                  title: Backlog grooming
+                  description: >-
+                    Review and prioritize tasks in the backlog for the upcoming
+                    sprint.
+                  priority: MEDIUM
+                  completed: false
+                  userId: 3
+                - id: 5
+                  title: Migrate database to new server
+                  description: >-
+                    Move the existing database to a new server for better
+                    performance and scalability.
+                  priority: HIGH
+                  completed: false
+                  userId: 3
+      servers:
+        - url: https://sctp-aie-m4-apigw.work.gd
+  /api/tasks/{id}:
+    delete:
+      summary: Delete task by id
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_tasks_delete_task_by_id_yml
+      description: ''
+      tags:
+        - Tasks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  title:
+                    type: string
+                  description:
+                    type: string
+                  priority:
+                    type: string
+                  completed:
+                    type: boolean
+                  userId:
+                    type: integer
+              example:
+                id: 2
+                title: Update title
+                description: Update description
+                priority: LOW
+                completed: true
+                userId: 1
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+              example:
+                message: Task with ID 7 not found
+                timestamp: '2026-10-17T03:39:41.216364435Z'
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+            format: int32
+          example: '2'
+      servers:
+        - url: https://sctp-aie-m4-apigw.work.gd
+    get:
+      summary: Get task by id
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_tasks_get_task_by_id_yml
+      description: ''
+      tags:
+        - Tasks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  title:
+                    type: string
+                  description:
+                    type: string
+                  priority:
+                    type: string
+                  completed:
+                    type: boolean
+                  userId:
+                    type: integer
+              example:
+                id: 2
+                title: Resolve bug in authentication module
+                description: >-
+                  Unexpected error occurs when user tries to login with valid
+                  credentials.
+                priority: HIGH
+                completed: false
+                userId: 1
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+              example:
+                message: Task with ID 7 not found
+                timestamp: '2026-10-16T12:39:52.633738976Z'
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+            format: int32
+          example: '7'
+      servers:
+        - url: https://sctp-aie-m4-apigw.work.gd
+    put:
+      summary: Update task by id
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_tasks_update_task_by_id_yml
+      description: ''
+      tags:
+        - Tasks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  title:
+                    type: string
+                  description:
+                    type: string
+                  priority:
+                    type: string
+                  completed:
+                    type: boolean
+                  userId:
+                    type: integer
+              example:
+                id: 2
+                title: Update title
+                description: Update description
+                priority: LOW
+                completed: true
+                userId: 1
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+              example:
+                message: Malformed request body
+                timestamp: '2026-10-17T03:36:48.244533640Z'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+              example:
+                message: Task with ID 7 not found
+                timestamp: '2026-10-17T03:35:57.543761188Z'
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+            format: int32
+          example: '2'
+      requestBody:
+        $ref: '#/components/requestBodies/update_task_by_id'
+      servers:
+        - url: https://sctp-aie-m4-apigw.work.gd
+  /api/tasks/user/{id}:
+    get:
+      summary: Get tasks by user id
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_tasks_get_tasks_by_user_id_yml
+      description: ''
+      tags:
+        - Tasks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    title:
+                      type: string
+                    description:
+                      type: string
+                    priority:
+                      type: string
+                    completed:
+                      type: boolean
+                    userId:
+                      type: integer
+              example:
+                - id: 1
+                  title: Refactor task manager service
+                  description: >-
+                    Team has decide to code to an interface for the service
+                    component.
+                  priority: MEDIUM
+                  completed: false
+                  userId: 2
+                - id: 2
+                  title: Resolve bug in authentication module
+                  description: >-
+                    Unexpected error occurs when user tries to login with valid
+                    credentials.
+                  priority: HIGH
+                  completed: false
+                  userId: 2
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+            format: int32
+          example: '2'
+      servers:
+        - url: https://sctp-aie-m4-apigw.work.gd
+  '{{url_health}}/db':
+    get:
+      summary: Health - Database
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_tasks_actuator_health_-_database_yml
+      description: ''
+      tags:
+        - Tasks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  details:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                      validationQuery:
+                        type: string
+                  status:
+                    type: string
+              example:
+                details:
+                  database: PostgreSQL
+                  validationQuery: isValid()
+                status: UP
+      x-bruno-variants:
+        - summary: Health - Database
+          operationId: >-
+            c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_users_actuator_health_-_database_yml
+          description: ''
+          tags:
+            - Users
+          responses:
+            '200':
+              description: OK
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      details:
+                        type: object
+                        properties:
+                          database:
+                            type: string
+                          validationQuery:
+                            type: string
+                      status:
+                        type: string
+                  example:
+                    details:
+                      database: PostgreSQL
+                      validationQuery: isValid()
+                    status: UP
+  '{{url_health}}/liveness':
+    get:
+      summary: Health - Liveliness
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_tasks_actuator_health_-_liveliness_yml
+      description: ''
+      tags:
+        - Tasks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+              example:
+                status: UP
+      x-bruno-variants:
+        - summary: Health - Liveness
+          operationId: >-
+            c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_users_actuator_health_-_liveness_yml
+          description: ''
+          tags:
+            - Users
+          responses:
+            '200':
+              description: OK
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                  example:
+                    status: UP
+  '{{url_health}}':
+    get:
+      summary: Health
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_tasks_actuator_health_yml
+      description: ''
+      tags:
+        - Tasks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  components:
+                    type: object
+                    properties:
+                      db:
+                        type: object
+                        properties:
+                          details:
+                            type: object
+                            properties:
+                              database:
+                                type: string
+                              validationQuery:
+                                type: string
+                          status:
+                            type: string
+                      diskSpace:
+                        type: object
+                        properties:
+                          details:
+                            type: object
+                            properties:
+                              total:
+                                type: integer
+                              free:
+                                type: integer
+                              threshold:
+                                type: integer
+                              path:
+                                type: string
+                              exists:
+                                type: boolean
+                          status:
+                            type: string
+                      livenessState:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                      ping:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                      readinessState:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                      ssl:
+                        type: object
+                        properties:
+                          details:
+                            type: object
+                            properties:
+                              expiringChains:
+                                type: array
+                                items:
+                                  type: string
+                              invalidChains:
+                                type: array
+                                items:
+                                  type: string
+                              validChains:
+                                type: array
+                                items:
+                                  type: string
+                          status:
+                            type: string
+                  groups:
+                    type: array
+                    items:
+                      type: string
+                  status:
+                    type: string
+              example:
+                components:
+                  db:
+                    details:
+                      database: PostgreSQL
+                      validationQuery: isValid()
+                    status: UP
+                  diskSpace:
+                    details:
+                      total: 2079065522176
+                      free: 1271846199296
+                      threshold: 10485760
+                      path: /app/.
+                      exists: true
+                    status: UP
+                  livenessState:
+                    status: UP
+                  ping:
+                    status: UP
+                  readinessState:
+                    status: UP
+                  ssl:
+                    details:
+                      expiringChains: []
+                      invalidChains: []
+                      validChains: []
+                    status: UP
+                groups:
+                  - liveness
+                  - readiness
+                status: UP
+      x-bruno-variants:
+        - summary: Health
+          operationId: >-
+            c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_users_actuator_health_yml
+          description: ''
+          tags:
+            - Users
+          responses:
+            '200':
+              description: OK
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      components:
+                        type: object
+                        properties:
+                          db:
+                            type: object
+                            properties:
+                              details:
+                                type: object
+                                properties:
+                                  database:
+                                    type: string
+                                  validationQuery:
+                                    type: string
+                              status:
+                                type: string
+                          diskSpace:
+                            type: object
+                            properties:
+                              details:
+                                type: object
+                                properties:
+                                  total:
+                                    type: integer
+                                  free:
+                                    type: integer
+                                  threshold:
+                                    type: integer
+                                  path:
+                                    type: string
+                                  exists:
+                                    type: boolean
+                              status:
+                                type: string
+                          livenessState:
+                            type: object
+                            properties:
+                              status:
+                                type: string
+                          ping:
+                            type: object
+                            properties:
+                              status:
+                                type: string
+                          readinessState:
+                            type: object
+                            properties:
+                              status:
+                                type: string
+                          ssl:
+                            type: object
+                            properties:
+                              details:
+                                type: object
+                                properties:
+                                  expiringChains:
+                                    type: array
+                                    items:
+                                      type: string
+                                  invalidChains:
+                                    type: array
+                                    items:
+                                      type: string
+                                  validChains:
+                                    type: array
+                                    items:
+                                      type: string
+                              status:
+                                type: string
+                      groups:
+                        type: array
+                        items:
+                          type: string
+                      status:
+                        type: string
+                  example:
+                    components:
+                      db:
+                        details:
+                          database: PostgreSQL
+                          validationQuery: isValid()
+                        status: UP
+                      diskSpace:
+                        details:
+                          total: 2079065522176
+                          free: 1271846199296
+                          threshold: 10485760
+                          path: /app/.
+                          exists: true
+                        status: UP
+                      livenessState:
+                        status: UP
+                      ping:
+                        status: UP
+                      readinessState:
+                        status: UP
+                      ssl:
+                        details:
+                          expiringChains: []
+                          invalidChains: []
+                          validChains: []
+                        status: UP
+                    groups:
+                      - liveness
+                      - readiness
+                    status: UP
+  '{{url_metrics}}/system.cpu.usage':
+    get:
+      summary: Metrics - CPU Usage
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_tasks_actuator_metrics_-_cpu_usage_yml
+      description: ''
+      tags:
+        - Tasks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  availableTags:
+                    type: array
+                    items:
+                      type: string
+                  description:
+                    type: string
+                  measurements:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        statistic:
+                          type: string
+                        value:
+                          type: number
+                  name:
+                    type: string
+              example:
+                availableTags: []
+                description: >-
+                  The "recent cpu usage" of the system the application is
+                  running in
+                measurements:
+                  - statistic: VALUE
+                    value: 0.0036913945086705204
+                name: system.cpu.usage
+      x-bruno-variants:
+        - summary: Metrics - CPU Usage
+          operationId: >-
+            c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_users_actuator_metrics_-_cpu_usage_yml
+          description: ''
+          tags:
+            - Users
+          responses:
+            '200':
+              description: OK
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      availableTags:
+                        type: array
+                        items:
+                          type: string
+                      description:
+                        type: string
+                      measurements:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            statistic:
+                              type: string
+                            value:
+                              type: number
+                      name:
+                        type: string
+                  example:
+                    availableTags: []
+                    description: >-
+                      The "recent cpu usage" of the system the application is
+                      running in
+                    measurements:
+                      - statistic: VALUE
+                        value: 0.0036913945086705204
+                    name: system.cpu.usage
+  '{{url_metrics}}/http.server.requests':
+    get:
+      summary: Metrics - Requests
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_tasks_actuator_metrics_-_requests_yml
+      description: ''
+      tags:
+        - Tasks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  availableTags:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        tag:
+                          type: string
+                        values:
+                          type: array
+                          items:
+                            type: string
+                  baseUnit:
+                    type: string
+                  measurements:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        statistic:
+                          type: string
+                        value:
+                          type: integer
+                  name:
+                    type: string
+              example:
+                availableTags:
+                  - tag: exception
+                    values:
+                      - none
+                  - tag: method
+                    values:
+                      - GET
+                  - tag: error
+                    values:
+                      - none
+                  - tag: uri
+                    values:
+                      - /actuator/metrics/{requiredMetricName}
+                      - /actuator/info
+                      - /actuator/health
+                      - /actuator/health/**
+                      - /actuator/metrics
+                  - tag: outcome
+                    values:
+                      - CLIENT_ERROR
+                      - SUCCESS
+                  - tag: status
+                    values:
+                      - '404'
+                      - '200'
+                baseUnit: seconds
+                measurements:
+                  - statistic: COUNT
+                    value: 9
+                  - statistic: TOTAL_TIME
+                    value: 0.262746664
+                  - statistic: MAX
+                    value: 0.033656981
+                name: http.server.requests
+      x-bruno-variants:
+        - summary: Metrics - Requests
+          operationId: >-
+            c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_users_actuator_metrics_-_requests_yml
+          description: ''
+          tags:
+            - Users
+          responses:
+            '200':
+              description: OK
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      availableTags:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            tag:
+                              type: string
+                            values:
+                              type: array
+                              items:
+                                type: string
+                      baseUnit:
+                        type: string
+                      measurements:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            statistic:
+                              type: string
+                            value:
+                              type: integer
+                      name:
+                        type: string
+                  example:
+                    availableTags:
+                      - tag: exception
+                        values:
+                          - none
+                      - tag: method
+                        values:
+                          - GET
+                      - tag: error
+                        values:
+                          - none
+                      - tag: uri
+                        values:
+                          - /actuator/metrics/{requiredMetricName}
+                          - /actuator/info
+                          - /actuator/health
+                          - /actuator/health/**
+                          - /actuator/metrics
+                      - tag: outcome
+                        values:
+                          - CLIENT_ERROR
+                          - SUCCESS
+                      - tag: status
+                        values:
+                          - '404'
+                          - '200'
+                    baseUnit: seconds
+                    measurements:
+                      - statistic: COUNT
+                        value: 9
+                      - statistic: TOTAL_TIME
+                        value: 0.262746664
+                      - statistic: MAX
+                        value: 0.033656981
+                    name: http.server.requests
+  '{{url_metrics}}':
+    get:
+      summary: Metrics
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_tasks_actuator_metrics_yml
+      description: ''
+      tags:
+        - Tasks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  names:
+                    type: array
+                    items:
+                      type: string
+              example:
+                names:
+                  - application.ready.time
+                  - application.started.time
+                  - disk.free
+                  - disk.total
+                  - executor.active
+                  - executor.completed
+                  - executor.pool.core
+                  - executor.pool.max
+                  - executor.pool.size
+                  - executor.queue.remaining
+                  - executor.queued
+                  - hikaricp.connections
+                  - hikaricp.connections.acquire
+                  - hikaricp.connections.active
+                  - hikaricp.connections.creation
+                  - hikaricp.connections.idle
+                  - hikaricp.connections.max
+                  - hikaricp.connections.min
+                  - hikaricp.connections.pending
+                  - hikaricp.connections.timeout
+                  - hikaricp.connections.usage
+                  - http.server.requests
+                  - http.server.requests.active
+                  - jdbc.connections.active
+                  - jdbc.connections.idle
+                  - jdbc.connections.max
+                  - jdbc.connections.min
+                  - jvm.buffer.count
+                  - jvm.buffer.memory.used
+                  - jvm.buffer.total.capacity
+                  - jvm.classes.loaded
+                  - jvm.classes.loaded.count
+                  - jvm.classes.unloaded
+                  - jvm.compilation.time
+                  - jvm.gc.live.data.size
+                  - jvm.gc.max.data.size
+                  - jvm.gc.memory.allocated
+                  - jvm.gc.memory.promoted
+                  - jvm.gc.overhead
+                  - jvm.gc.pause
+                  - jvm.info
+                  - jvm.memory.committed
+                  - jvm.memory.max
+                  - jvm.memory.usage.after.gc
+                  - jvm.memory.used
+                  - jvm.threads.daemon
+                  - jvm.threads.live
+                  - jvm.threads.peak
+                  - jvm.threads.started
+                  - jvm.threads.states
+                  - logback.events
+                  - process.cpu.time
+                  - process.cpu.usage
+                  - process.files.max
+                  - process.files.open
+                  - process.start.time
+                  - process.uptime
+                  - spring.data.repository.invocations
+                  - spring.security.authorizations
+                  - spring.security.authorizations.active
+                  - spring.security.filterchains
+                  - spring.security.filterchains.JwtAuthFilter.after
+                  - spring.security.filterchains.JwtAuthFilter.before
+                  - spring.security.filterchains.access.exceptions.after
+                  - spring.security.filterchains.access.exceptions.before
+                  - spring.security.filterchains.active
+                  - spring.security.filterchains.authentication.anonymous.after
+                  - spring.security.filterchains.authentication.anonymous.before
+                  - spring.security.filterchains.authorization.after
+                  - spring.security.filterchains.authorization.before
+                  - spring.security.filterchains.context.async.after
+                  - spring.security.filterchains.context.async.before
+                  - spring.security.filterchains.context.holder.after
+                  - spring.security.filterchains.context.holder.before
+                  - spring.security.filterchains.context.servlet.after
+                  - spring.security.filterchains.context.servlet.before
+                  - spring.security.filterchains.header.after
+                  - spring.security.filterchains.header.before
+                  - spring.security.filterchains.logout.after
+                  - spring.security.filterchains.logout.before
+                  - spring.security.filterchains.requestcache.after
+                  - spring.security.filterchains.requestcache.before
+                  - spring.security.filterchains.session.management.after
+                  - spring.security.filterchains.session.management.before
+                  - spring.security.filterchains.session.urlencoding.after
+                  - spring.security.filterchains.session.urlencoding.before
+                  - spring.security.http.secured.requests
+                  - spring.security.http.secured.requests.active
+                  - system.cpu.count
+                  - system.cpu.usage
+                  - system.load.average.1m
+                  - tomcat.sessions.active.current
+                  - tomcat.sessions.active.max
+                  - tomcat.sessions.alive.max
+                  - tomcat.sessions.created
+                  - tomcat.sessions.expired
+                  - tomcat.sessions.rejected
+      x-bruno-variants:
+        - summary: Metrics
+          operationId: >-
+            c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_users_actuator_metrics_yml
+          description: ''
+          tags:
+            - Users
+          responses:
+            '200':
+              description: OK
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      names:
+                        type: array
+                        items:
+                          type: string
+                  example:
+                    names:
+                      - application.ready.time
+                      - application.started.time
+                      - disk.free
+                      - disk.total
+                      - executor.active
+                      - executor.completed
+                      - executor.pool.core
+                      - executor.pool.max
+                      - executor.pool.size
+                      - executor.queue.remaining
+                      - executor.queued
+                      - hikaricp.connections
+                      - hikaricp.connections.acquire
+                      - hikaricp.connections.active
+                      - hikaricp.connections.creation
+                      - hikaricp.connections.idle
+                      - hikaricp.connections.max
+                      - hikaricp.connections.min
+                      - hikaricp.connections.pending
+                      - hikaricp.connections.timeout
+                      - hikaricp.connections.usage
+                      - http.server.requests
+                      - http.server.requests.active
+                      - jdbc.connections.active
+                      - jdbc.connections.idle
+                      - jdbc.connections.max
+                      - jdbc.connections.min
+                      - jvm.buffer.count
+                      - jvm.buffer.memory.used
+                      - jvm.buffer.total.capacity
+                      - jvm.classes.loaded
+                      - jvm.classes.loaded.count
+                      - jvm.classes.unloaded
+                      - jvm.compilation.time
+                      - jvm.gc.live.data.size
+                      - jvm.gc.max.data.size
+                      - jvm.gc.memory.allocated
+                      - jvm.gc.memory.promoted
+                      - jvm.gc.overhead
+                      - jvm.gc.pause
+                      - jvm.info
+                      - jvm.memory.committed
+                      - jvm.memory.max
+                      - jvm.memory.usage.after.gc
+                      - jvm.memory.used
+                      - jvm.threads.daemon
+                      - jvm.threads.live
+                      - jvm.threads.peak
+                      - jvm.threads.started
+                      - jvm.threads.states
+                      - logback.events
+                      - process.cpu.time
+                      - process.cpu.usage
+                      - process.files.max
+                      - process.files.open
+                      - process.start.time
+                      - process.uptime
+                      - spring.data.repository.invocations
+                      - spring.security.authorizations
+                      - spring.security.authorizations.active
+                      - spring.security.filterchains
+                      - spring.security.filterchains.JwtAuthFilter.after
+                      - spring.security.filterchains.JwtAuthFilter.before
+                      - spring.security.filterchains.access.exceptions.after
+                      - spring.security.filterchains.access.exceptions.before
+                      - spring.security.filterchains.active
+                      - >-
+                        spring.security.filterchains.authentication.anonymous.after
+                      - >-
+                        spring.security.filterchains.authentication.anonymous.before
+                      - spring.security.filterchains.authorization.after
+                      - spring.security.filterchains.authorization.before
+                      - spring.security.filterchains.context.async.after
+                      - spring.security.filterchains.context.async.before
+                      - spring.security.filterchains.context.holder.after
+                      - spring.security.filterchains.context.holder.before
+                      - spring.security.filterchains.context.servlet.after
+                      - spring.security.filterchains.context.servlet.before
+                      - spring.security.filterchains.header.after
+                      - spring.security.filterchains.header.before
+                      - spring.security.filterchains.logout.after
+                      - spring.security.filterchains.logout.before
+                      - spring.security.filterchains.requestcache.after
+                      - spring.security.filterchains.requestcache.before
+                      - spring.security.filterchains.session.management.after
+                      - spring.security.filterchains.session.management.before
+                      - spring.security.filterchains.session.urlencoding.after
+                      - spring.security.filterchains.session.urlencoding.before
+                      - spring.security.http.secured.requests
+                      - spring.security.http.secured.requests.active
+                      - system.cpu.count
+                      - system.cpu.usage
+                      - system.load.average.1m
+                      - tomcat.sessions.active.current
+                      - tomcat.sessions.active.max
+                      - tomcat.sessions.alive.max
+                      - tomcat.sessions.created
+                      - tomcat.sessions.expired
+                      - tomcat.sessions.rejected
+  /api/users:
+    post:
+      summary: Create user
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_users_create_user_yml
+      description: ''
+      tags:
+        - Users
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  username:
+                    type: string
+                  name:
+                    type: string
+                  role:
+                    type: string
+              example:
+                id: 5
+                username: donald
+                name: Donald
+                role: USER
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+              example:
+                message: Malformed request body
+                timestamp: '2026-10-15T04:09:16.321995823Z'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+              example:
+                message: 'Username already exists: donald'
+                timestamp: '2026-10-15T04:08:29.706256712Z'
+      requestBody:
+        $ref: '#/components/requestBodies/create_user'
+      servers:
+        - url: https://sctp-aie-m4-apigw.work.gd
+    get:
+      summary: Get all users
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_users_get_all_users_yml
+      description: ''
+      tags:
+        - Users
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    username:
+                      type: string
+                    name:
+                      type: string
+                    role:
+                      type: string
+              example:
+                - id: 1
+                  username: admin01
+                  name: Administrator
+                  role: ADMIN
+                - id: 3
+                  username: george
+                  name: George
+                  role: MANAGER
+                - id: 2
+                  username: alice01
+                  name: Alice Lim Tow Kay
+                  role: USER
+                - id: 5
+                  username: donald
+                  name: Donald
+                  role: USER
+      servers:
+        - url: https://sctp-aie-m4-apigw.work.gd
+  /api/users/{id}:
+    delete:
+      summary: Delete user by id
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_users_delete_user_by_id_yml
+      description: ''
+      tags:
+        - Users
+      responses:
+        '204':
+          description: No Content
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+              example:
+                message: You do not have permission to access this resource
+                timestamp: '2026-10-15T04:00:35.135412595Z'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+              example:
+                message: User with ID 41 not found
+                timestamp: '2026-10-15T04:01:57.045220053Z'
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+            format: int32
+          example: '4'
+      servers:
+        - url: https://sctp-aie-m4-apigw.work.gd
+    get:
+      summary: Get user by id
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_users_get_user_by_id_yml
+      description: ''
+      tags:
+        - Users
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  username:
+                    type: string
+                  name:
+                    type: string
+                  role:
+                    type: string
+              example:
+                id: 2
+                username: alice01
+                name: Alice Lim Tow Kay
+                role: USER
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+              example:
+                message: User with ID 7 not found
+                timestamp: '2026-10-15T04:09:49.142083054Z'
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+            format: int32
+          example: '2'
+      servers:
+        - url: https://sctp-aie-m4-apigw.work.gd
+    patch:
+      summary: Update User by id
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_users_update_user_by_id_1_yml
+      description: ''
+      tags:
+        - Users
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  username:
+                    type: string
+                  name:
+                    type: string
+                  role:
+                    type: string
+              example:
+                id: 3
+                username: elaine
+                name: Elaine Eng
+                role: USER
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+              example:
+                message: 'Username already exists: elaine'
+                timestamp: '2026-10-19T01:47:59.410021822Z'
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+            format: int32
+          example: '2'
+      requestBody:
+        $ref: '#/components/requestBodies/update_user_by_id'
+      servers:
+        - url: https://sctp-aie-m4-apigw.work.gd
+    put:
+      summary: Update user by id
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_users_update_user_by_id_yml
+      description: ''
+      tags:
+        - Users
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  username:
+                    type: string
+                  name:
+                    type: string
+                  role:
+                    type: string
+              example:
+                id: 2
+                username: alice01
+                name: Alice Lim Tow Kay
+                role: USER
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+              example:
+                message: Malformed request body
+                timestamp: '2026-10-15T04:06:16.667104265Z'
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+            format: int32
+          example: '2'
+      requestBody:
+        $ref: '#/components/requestBodies/update_user_by_id_1'
+      servers:
+        - url: https://sctp-aie-m4-apigw.work.gd
+  /api/users/{id}/password:
+    patch:
+      summary: Update password
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_users_update_password_yml
+      description: ''
+      tags:
+        - Users
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+              example:
+                message: 'password: Password must be between 8 and 72 characters long'
+                timestamp: '2026-10-19T02:00:24.431664709Z'
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: integer
+            format: int32
+          example: '3'
+      requestBody:
+        $ref: '#/components/requestBodies/update_password'
+      servers:
+        - url: https://sctp-aie-m4-apigw.work.gd
+  /auth/login:
+    post:
+      summary: Login
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_users_authenticate_login_yml
+      description: ''
+      tags:
+        - Users
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  valid:
+                    type: boolean
+                  claims:
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                      roles:
+                        type: array
+                        items:
+                          type: string
+                      expiration:
+                        type: integer
+              examples:
+                200_-_Ok:
+                  value:
+                    token: >-
+                      eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJ1c2VyLXNlcnZpY2UiLCJpYXQiOjE3OTE1MTIxODEsImF1ZCI6WyJ0YXNrZmxvdy1hcGkiXSwic3ViIjoiYWRtaW4wMSIsImV4cCI6MTc5MTUxNTc4MSwicm9sZXMiOlsiUk9MRV9BRE1JTiJdfQ.oyFah2qW90c2TKcw9T7w6KtNpCgtAcvKl6V5dN3A6IVl182YWpd1zTOq_Eaq7MJO6-HhuvqCYJbem6TPjw8Py_HaZS4lRAUcsP8LfTun0jk97noO2QBUc3VkbSxzoCF820A8-f8PBDRxeCeG4A1GnsC10x0wXjAwWQKqoXbghaAf0RcqL2xNUR31EZpUKcXciipC2BQtyGcbXjBVpkd9r-zRbDciwgHXuV9zpjfvRZTZhwFTdIHhv51xgllO7iokHjV3lhDI01nD4Wv6-ST6TUvE4pXokwF13tHnI1tC68PZcPaVPAmYCigqzOWJa4iN4xKT-dBLtVVVxyeuVHl6Wg
+                    valid: true
+                    claims:
+                      username: admin01
+                      roles:
+                        - ROLE_ADMIN
+                      expiration: 1791515781000
+                  summary: 200 - Ok
+                200_-_Ok_2:
+                  value:
+                    token: >-
+                      eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJ1c2VyLXNlcnZpY2UiLCJpYXQiOjE3OTE3NTgyODcsImF1ZCI6WyJ0YXNrZmxvdy1hcGkiXSwic3ViIjoiYWRtaW4wMSIsInVpZCI6MSwiZXhwIjoxNzkxNzYxODg3LCJyb2xlcyI6WyJST0xFX0FETUlOIl19.voAUNsbCLo7ATN2-oZ28TXA9x3GCq5Dh8HNrKSAH3jRlihXR52GEhioQdMJpHQBIOIR-Q1zLMqc962ccxMKHAiRRYc2s-kNecy3pkZ5FwRqWtxci2FuR-qwEuYWgqIkceG2cHdyL-vreGOxrbK4Xk_LuI8bK7x9WVlY3LEs0StpnOe85FHwNLgGwKrkywSa3J_ipl_-UmBQ2u4Nd614nWV_bUeCdaJ16LS1k4PbKUIajh3xbf4k6zppa8KDnxvTHOucuVJkz8D7vlDdO58j-Bsk0pdqDq0Kv_xHpVpLKLPgbi74XhdaIiLvw3fWJ2CCF58LFrUuAeyYiZv8sPNAUAg
+                    valid: true
+                    claims:
+                      username: admin01
+                      roles:
+                        - ROLE_ADMIN
+                      expiration: 1791761887000
+                      userId: 1
+                  summary: 200 - Ok
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+              example:
+                message: >-
+                  password: Password must not be blank; username: Username must
+                  not be blank
+                timestamp: '2026-10-11T02:20:51.676901788Z'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+              example:
+                message: Authentication failed
+                timestamp: '2026-10-11T02:21:56.082111287Z'
+      requestBody:
+        $ref: '#/components/requestBodies/login'
+      servers:
+        - url: https://sctp-aie-m4-apigw.work.gd
+  /auth/validate:
+    post:
+      summary: Validate Token
+      operationId: >-
+        c_users_hakng_documents_bruno_sctp_aie_m4_-_assignment_users_authenticate_validate_token_yml
+      description: ''
+      tags:
+        - Users
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  isValid:
+                    type: boolean
+                  claims:
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                      roles:
+                        type: array
+                        items:
+                          type: string
+                      expiration:
+                        type: integer
+              examples:
+                200_-_Ok:
+                  value:
+                    token: >-
+                      eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjaGFybGllIiwiaWF0IjoxNzkxMDc5MjUwLCJleHAiOjE3OTEwODI4NTAsInJvbGVzIjpbIlJPTEVfVVNFUiJdfQ.EX_J-IGzgXvsEpVZTy1eJVbaTgwMOVNeOTuVaqKPorI
+                    isValid: true
+                    claims:
+                      username: charlie
+                      roles:
+                        - ROLE_USER
+                      expiration: 1791082850000
+                  summary: 200 - Ok
+                200_-_Ok_-_Malformed:
+                  value:
+                    token: >-
+                      eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjaGFybGllIiwiaWF0IjoxNzkxMDc5MjUwLCJleHAiOjE3OTEwODI4NTAsInJvbGVzIjpbIlJPTEVfVVNFUiJdfQ.EX_J-IGzgXvsEpVZTy1eJVbaTgwMOVNeOTuVaqKPorI
+                    valid: false
+                    error: MALFORMED
+                  summary: 200 - Ok - Malformed
+                200_-_Ok_-_Valid_Token:
+                  value:
+                    token: >-
+                      eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJ1c2VyLXNlcnZpY2UiLCJpYXQiOjE3OTE2ODM5NTksImF1ZCI6WyJ0YXNrZmxvdy1hcGkiXSwic3ViIjoiYWRtaW4wMSIsImV4cCI6MTc5MTY4NzU1OSwicm9sZXMiOlsiUk9MRV9BRE1JTiJdfQ.EZXZdOEmlsuV2W-wFqgMytCSvS4450FNZ59aHhiRyhNQW83A2ER9-VNS8XuStLCKiVksyxTWH8KnHBdeYw_kTMB-SFjKQXfELXmECH3MuEHls7w-vUbDYw9CxtELGceMhy_cotlR_3VIY_JjbQawhYL91mg5WOuRxaAk1QTLejNHXkrxPII4ASKkv4-EN9N9jMxHJ3sFDKAypbZ9nGaq8-aY2cTnoDAXT-RccNMD9mjI_PBhMHKs_KeO4iWmFc4Ho890UQ_U9OBy0m8_mucgVDFU1fbdpQk2dUj-mtx14ctWfwyAJSHavVRs_ATXRX9JMjORJjDJVyMvKtOItl4xKQ
+                    valid: true
+                    claims:
+                      username: admin01
+                      roles:
+                        - ROLE_ADMIN
+                      expiration: 1791687559000
+                  summary: 200 - Ok - Valid Token
+                200_-_Ok_-_Bad_Signature:
+                  value:
+                    token: >-
+                      eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJ1c2VyLXNlcnZpY2UiLCJpYXQiOjE3OTE2ODM5NTksImF1ZCI6WyJ0YXNrZmxvdy1hcGkiXSwic3ViIjoiYWRtaW4wMSIsImV4cCI6MTc5MTY4NzU1OSwicm9sZXMiOlsiUk9MRV9BRE1JTiJdfQ.EZXZdOEmlsuV2W-wFqgMytCSvS4450FNZ59aHhiRyhNQW83A2ER9-VNS8XuStLCKiVksyxTWH8KnHBdeYw_kTMB-SFjKQXfELXmECH3MuEHls7w-vUbDYw9CxtELGceMhy_cotlR_3VIY_JjbQawhYL91mg5WOuRxaAk1QTLejNHXkrxPII4ASKkv4-EN9N9jMxHJ3sFDKAypbZ9nGaq8-aY2cTnoDAXT-RccNMD9mjI_PBhMHKs_KeO4iWmFc4Ho890UQ_U9OBy0m8_mucgVDFU1fbdpQk2dUj-mtx14ctWfwyAJSHavVRs_ATXRX9JMjORJjDJVyMvKtOItl4xKQ1
+                    valid: false
+                    error: BAD_SIGNATURE
+                  summary: 200 - Ok - Bad Signature
+                200_-_Ok_-_Empty_Token:
+                  value:
+                    valid: false
+                    error: EMPTY
+                  summary: 200 - Ok - Empty Token
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+              example:
+                message: Authentication failed
+                timestamp: '2026-10-11T02:05:13.148489863Z'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+              example:
+                message: You do not have permission to access this resource
+                timestamp: '2026-10-11T02:15:32.745709092Z'
+      requestBody:
+        $ref: '#/components/requestBodies/validate_token'
+      security:
+        - validate_token: []
+      servers:
+        - url: https://sctp-aie-m4-apigw.work.gd
+servers: []
+components:
+  schemas:
+    create_task:
+      type: object
+      properties: {}
+    update_task_by_id:
+      type: object
+      properties: {}
+    create_user:
+      type: object
+      properties: {}
+    update_password:
+      type: object
+      properties:
+        password:
+          type: string
+      example:
+        password: abcd
+    update_user_by_id:
+      type: object
+      properties: {}
+    update_user_by_id_1:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        name:
+          type: string
+        role:
+          type: integer
+      example:
+        username: '{{user_new_username}}'
+        password: '{{user_new_password}}'
+        name: '{{user_new_name}} Lim Tow Kay'
+        role: 7
+    login:
+      type: object
+      properties: {}
+    validate_token:
+      type: object
+      properties:
+        token:
+          type: string
+      example:
+        token: '{{jwt}}'
+  requestBodies:
+    create_task:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/create_task'
+      description: ''
+      required: true
+    update_task_by_id:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/update_task_by_id'
+      description: ''
+      required: true
+    create_user:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/create_user'
+      description: ''
+      required: true
+    update_password:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/update_password'
+      description: ''
+      required: true
+    update_user_by_id:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/update_user_by_id'
+      description: ''
+      required: true
+    update_user_by_id_1:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/update_user_by_id_1'
+      description: ''
+      required: true
+    login:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/login'
+      description: ''
+      required: true
+    validate_token:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/validate_token'
+      description: ''
+      required: true
+  securitySchemes:
+    validate_token:
+      type: http
+      scheme: bearer

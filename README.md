@@ -63,8 +63,8 @@ The brief asks for one stretch goal. Four were taken on, and they build on each 
 
 | Option | Status | What was built | Evidence |
 |---|---|---|---|
-| 1. CI pipeline to Docker Hub | Done | GitHub Actions: tests and security scans, release, build and push to Docker Hub, then deploy to the swarm. Docker Hub credentials are repository secrets | [Users API CI/CD pipeline][https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-deployment.md], [Tasks API CI/CD pipeline](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/README-deployment.md), section 4.4. Successful run: `<add link>`, [User service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/user-service/general), [Task service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/task-service/general) |
-| 2. Frontend | Done, on **Vercel instead of Netlify** | Next.js app with a BFF. The browser only talks to Vercel and the BFF calls the APIs server-side, so the APIs need no CORS configuration | [Web app README](https://github.com/ensanguine2279/sctp-aie-m4-assignment-web). Frontend URL: `https://taskmaster-hakngrow.vercel.app/login` (Login required) |
+| 1. CI pipeline to Docker Hub | Done | GitHub Actions: tests and security scans, release, build and push to Docker Hub, then deploy to the swarm. Docker Hub credentials are repository secrets | [Users API CI/CD pipeline](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-deployment.md), [Tasks API CI/CD pipeline](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/README-deployment.md), section 4.4. Successful run: `<add link>`, [User service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/user-service/general), [Task service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/task-service/general) |
+| 2. Frontend | Done, on **Vercel instead of Netlify** | Next.js app with a BFF. The browser only talks to Vercel and the BFF calls the APIs server-side, so the APIs need no CORS configuration | [Web app README](https://github.com/ensanguine2279/sctp-aie-m4-assignment-web). Frontend URL: [`https://taskmaster-hakngrow.vercel.app/`](https://taskmaster-hakngrow.vercel.app/) (Login required) |
 | 3. Simple CRM instead of TaskFlow | Not taken | | |
 | 4. Versioned images | Done | semantic-release derives `MAJOR.MINOR.PATCH` from commit messages; images are also tagged with the commit SHA, and the swarm deploys by digest | Section 4.4. Docker Hub tags screenshot in section 1.5 |
 | 5. Security checks | Done for the users service; tasks API files ready, rollout pending | OWASP Dependency-Check, Trivy image scan, gitleaks over the whole history, and a project script that fails on committed keys, `.env` files or default secrets. All run in CI and gate the release | [Users security checks](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-security-checks.md), [Tasks security checks](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/README-security-checks.md) |
@@ -72,17 +72,30 @@ The brief asks for one stretch goal. Four were taken on, and they build on each 
 Beyond the brief: two cooperating services with asymmetric JWTs, two replicas of each API across three nodes, rolling updates with automatic rollback, HTTPS, and optional Terraform for the infrastructure.
 
 ### 1.5 Live URL and screenshots
-
-- **Live API:** `https://sctp-aie-m4-apigw.work.gd/api/tasks` (send a token from `POST /auth/login`)
-- **Frontend:** `<add Vercel URL>`
+- **Authentication Endpoint** `https://sctp-aie-m4-apigw.work.gd/auth/login`
+- **Live API:** `https://sctp-aie-m4-apigw.work.gd/api/users` (attach a BEARER token from `POST /auth/login`)
+- **Live API:** `https://sctp-aie-m4-apigw.work.gd/api/tasks` (attach a BEARER token from `POST /auth/login`)
+- **OpenAPI Specification** [open-api-spec.yaml](open-api-spec.yaml)
+- **Frontend:** <https://taskmaster-hakngrow.vercel.app/login>
 
 With no Railway dashboard, the deployment is shown through the swarm itself:
 
-![Swarm services running](screenshots/swarm-services.png)
-![Portainer dashboard](screenshots/portainer.png)
-![Live API called with a token](screenshots/live-api.png)
-![Docker Hub tags](screenshots/dockerhub-tags.png)
-![Successful pipeline run](screenshots/pipeline-run.png)
+![Portainer dashboard](assets/images/ptr-dashboard.jpg)
+
+![Swarm stacks running](assets/images/ptr-stacks.jpg)
+
+![Swarm services running](assets/images/ptr-services.jpg)
+
+![Swarm containers running](assets/images/ptr-containers.jpg)
+
+![Live API - authentication](assets/images/bruno-api-auth-login.jpg)
+![Live API - get all tasks - with token](assets/images/bruno-api-tasks-all.jpg)
+![Live API - create task - with token](assets/images/bruno-api-tasks-create.jpg)
+
+![Docker Hub tags](assets/images/docker-users-tags.jpg)
+
+![Successful pipeline run](assets/images/gha-users-pipeline.jpg)
+
 ![Frontend showing tasks](screenshots/frontend.png)
 
 ### 1.6 Errors and failures
