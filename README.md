@@ -73,7 +73,7 @@ Beyond the brief: two cooperating services with asymmetric JWTs, two replicas of
 
 ### 1.5 Live URL and screenshots
 
-- **Deployment:** `https://localhost:9443` via SSH tunneling 
+- **Portainer (admin only):** Not public; reached at `https://localhost:9443` through an SSH tunnel to `swarm-3`
 
 With no Railway dashboard, the deployment is shown through the swarm itself via Portainer:
 
@@ -99,23 +99,33 @@ With no Railway dashboard, the deployment is shown through the swarm itself via 
 #### Live API - Create task (with JWT token)
 ![Live API - create task - with token](assets/images/bruno-api-tasks-create.jpg)
 
-#### Docker Hub - User Service - Tags
+#### Docker Hub - Tags
 
 - **Users Repository:** <https://hub.docker.com/repository/docker/ensanguine/user-service/general>
 ![Docker Hub tags](assets/images/docker-users-tags.jpg)
 
-- **Tasks Repository:** <https://hub.docker.com/repository/docker/ensanguine/user-service/general>
+- **Tasks Repository:** <https://hub.docker.com/repository/docker/ensanguine/task-service/general>
 ![Docker Hub tags](assets/images/docker-tasks-tags.jpg)
 
 #### GitHub Actions - Pipeline
 
-- **Users CI/CD Pipeline:** <https://hub.docker.com/repository/docker/ensanguine/user-service/general>
+- **Users CI/CD Pipeline:** <https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/actions/runs/40509186162>
 ![Successful pipeline run](assets/images/gha-users-pipeline.jpg)
 
 - **Tasks CI/CD Pipeline:** <https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/actions/runs/40508417611>
 ![Successful pipeline run](assets/images/gha-tasks-pipeline.jpg)
 
+#### Web App 
+
 - **Frontend:** <https://taskmaster-hakngrow.vercel.app/login>
+
+Sample accounts of various roles have been seeded for testing purposes:
+
+| Username | Role | Password |
+|---|---|---|
+| admin01 | Administrator | **password can be shared privately** |
+| benny01 | Manager | abcd1234 |
+| alice01 | User | abcd1234 |
 
 #### Login page
 
