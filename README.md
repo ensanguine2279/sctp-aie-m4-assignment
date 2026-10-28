@@ -54,7 +54,7 @@ Each API has its own codebase, container image, database, pipeline and release c
 |---|---|---|---|
 | 1. Dockerfile | Multi-stage `Dockerfile` given in the brief | Kept the two-stage pattern and hardened the runtime stage: non-root user, `apk upgrade` on every build, no `curl`, a liveness health check, and each service's own port (8022, 8077) instead of 8080 | [Users Dockerfile](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/Dockerfile), [Tasks Dockerfile](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/Dockerfile) |
 | 2. Build and test locally | `docker build`, `docker run`, `curl /api/tasks` | Each API runs locally with Docker Compose, its own Postgres, and its JWT key mounted as a secret. `/api/tasks` needs a token, so a bare `curl` returns 401; the smoke test logs in first, exercises the endpoints and checks that forged tokens are rejected | [Users compose](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/docker-compose.yml), [Tasks compose](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/docker-compose.yml), [Users authentication][users-auth], [Tasks authentication][tasks-auth] |
-| 3. Deploy to Railway | Deploy from GitHub, generate a domain | **Railway was the plan, but it had an outage and a security incident.** The deployment moved to a three-node Docker Swarm on Google Cloud, behind Caddy with HTTPS (section 3.2) | [Swarm design][],  [Swarm setup][swarm-setup] |
+| 3. Deploy to Railway | Deploy from GitHub, generate a domain | **Railway was the plan, but it had an outage and a security incident.** The deployment moved to a three-node Docker Swarm on Google Cloud, behind Caddy with HTTPS ([Section 3.2](#32-how-the-platform-was-chosen)) | [Swarm design][],  [Swarm setup][swarm-setup] |
 | 4. Verify the deployment | `curl` the live URL, screenshots | API Live at `https://sctp-aie-m4-apigw.work.gd` (token required). Screenshots in section 1.5 | [Section 1.5](#15-live-url-and-screenshots) |
 
 ### 1.4 Stretch goals
@@ -63,7 +63,7 @@ The brief asks for one stretch goal. Four were taken on, and they build on each 
 
 | Option | Status | What was built | Evidence |
 |---|---|---|---|
-| 1. CI pipeline to Docker Hub | Done | GitHub Actions: tests and security scans, release, build and push to Docker Hub, then deploy to the swarm. Docker Hub credentials are repository secrets | [Users API CI/CD pipeline][users-deploy], [Tasks API CI/CD pipeline][tasks-deploy], section 4.4. Successful run: `<add link>`, [User service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/user-service/general), [Task service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/task-service/general) |
+| 1. CI pipeline to Docker Hub | Done | GitHub Actions: tests and security scans, release, build and push to Docker Hub, then deploy to the swarm. Docker Hub credentials are repository secrets | [Users API CI/CD pipeline][users-deploy], [Tasks API CI/CD pipeline][tasks-deploy], [Section 4.4](#44-cicd-and-the-security-gate). Successful run: `<add link>`, [User service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/user-service/general), [Task service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/task-service/general) |
 | 2. Frontend | Done, on **Vercel instead of Netlify** | Next.js app with a BFF. The browser only talks to Vercel and the BFF calls the APIs server-side, so the APIs need no CORS configuration | [Web app README][web-readme]. Frontend URL: <https://taskmaster-hakngrow.vercel.app> (Login required) |
 | 3. Simple CRM instead of TaskFlows | Not taken | | |
 | 4. Versioned images | Done | semantic-release derives `MAJOR.MINOR.PATCH` from commit messages; images are also tagged with the commit SHA, and the swarm deploys by digest | Section 4.4. Docker Hub tags screenshot in [Section 1.5](#15-live-url-and-screenshots) |
@@ -361,10 +361,10 @@ The project's working status and open items are tracked in [PROJECT-CONTEXT][pro
 
 | Area | Document | Covers |
 |---|---|---|
-| Deployment | [Swarm design and motivation][swarm-design] | Why the deployment looks the way it does |
-| Deployment | [Swarm setup guide][swarm-setup] | Building the environment step by step |
-| Deployment | [Swarm architecture and runbook][swarm-runbook] | Day-to-day operations |
-| Deployment | [Terraform README][swarm-terraform] | Infrastructure as code |
+| Infrastructure | [Swarm design and motivation][swarm-design] | Why the deployment looks the way it does |
+| Infrastructure | [Swarm setup guide][swarm-setup] | Building the environment step by step |
+| Infrastructure | [Swarm architecture and runbook][swarm-runbook] | Day-to-day operations |
+| Infrastructure | [Terraform README][swarm-terraform] | Infrastructure as code |
 | Users API | [README][users-readme] | Overview, configuration, running |
 | Users API | [README-authentication][users-auth] | RS256 signing, key loading, token contract |
 | Users API | [README-deployment][users-deploy] | CI/CD pipeline |
