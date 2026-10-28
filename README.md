@@ -224,7 +224,7 @@ Details: [users authentication][users-auth], [tasks authentication][tasks-auth],
 | D12 | Front end stays on Vercel | Already working, no VM load | Caddy sees Vercel IPs only |
 | D13 | Free domain from DNSExit | HTTPS at no cost | Depends on the provider's terms |
 
-Each decision is explained in full in the [design document][swarm-design], [Section 4](#4-architectural-implementation).
+Each decision is explained in full in the [design document][swarm-design], [Section 4][swarm-design#4-design-decisions].
 
 ---
 
