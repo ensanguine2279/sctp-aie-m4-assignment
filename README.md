@@ -1,99 +1,131 @@
-# Module 4 End of Module Assignment: TaskFlow API - Dockerize & Deploy
+# Module 4 - End of Module Assignment: TaskFlow API - Dockerize & Deploy
 
-This document explains why the Users and Tasks APIs run on a three-node Docker Swarm on Google Cloud (GCP), how the setup is built, and why each design choice was made. For day-to-day commands (deploys, failover drill, teardown) see the architecture and runbook document.
+This document serves as the starting point for the TaskFlow project. It begins with what the assignment asked for, explains the design choices and why they were made, and then describes how they were built. Each section provides links to related documents and repositories with the full details, so you can read this one first and go deeper only where you need to.
 
-## 1. Summary
+## Document map
 
-| | |
+| If you want to... | Read |
 |---|---|
-| Workload | Two Spring Boot APIs: Users (signs JWTs, port 8022) and Tasks (verifies JWTs, port 8077), each with its own PostgreSQL 16 database |
-| Platform | Docker Swarm on three GCP Compute Engine VMs (`swarm-1`, `swarm-2`, `swarm-3`), type `e2-medium` (2 vCPU, 4 GB), Ubuntu 24.04, zone `asia-southeast1-b` |
-| Public entry | `https://sctp-aie-m4-apigw.work.gd`, served by Caddy on `swarm-1` (static IP) |
-| Delivery | GitHub Actions: test, semantic-release, build and push to Docker Hub, deploy over SSH with a rolling update |
-| Consumer | A Next.js frontend with a backend-for-frontend (BFF) layer on Vercel, outside the swarm |
-| Goal | Demonstrate a highly available application tier on a small budget: if a node dies, its replicas restart on the others |
+| Understand the whole project in one pass | This document |
+| See why the deployment looks the way it does | [Swarm design and motivation][swarm-design] |
+| Rebuild the environment from nothing | [Swarm setup guide][swarm-setup] |
+| Deploy, run a failover drill or tear down | [Swarm architecture and runbook][swarm-runbook] |
+| Create the VMs and swarm with Terraform | [Terraform README][terraform] |
+| Work on the login and token-signing service | [Users service README][users-readme], [authentication][users-auth] |
+| Work on the task service | [Tasks API README][tasks-readme], [authentication][tasks-auth] |
+| Work on the web front end | [Web app README][web-readme] |
+| Understand the CI/CD pipeline | [Tasks API deployment (CI/CD)][tasks-deploy] |
+| Understand the security checks in CI | [Users security checks][users-security], [Tasks security checks][tasks-security] |
 
-## 2. Motivation
+---
 
-### 2.1 What the project is about
+## 1. The assignment
 
-The project is about **DevOps, containerization and CI/CD**: packaging an application into container images, shipping those images through an automated pipeline, and running them reliably. These practices are easiest to show on a **microservice** system, where several independently built and released services have to be deployed, connected and updated without breaking each other. That is why the application is split into two services rather than one:
+### 1.1 What was asked
 
-- **Users API:** handles login and signs JWTs.
-- **Tasks API:** serves task data and only verifies the JWTs.
+The brief is the **Module 4 end-of-module assignment, "TaskFlow API - Dockerize & Deploy"** (AI Engineering, Module 4 DevOps, NTU). It is graded pass/fail and encourages experimenting, taking on stretch goals, and reporting errors honestly in the README.
 
-Each service has its own codebase, container image, database, pipeline and release cycle. A change to one is built, tested, versioned and deployed without touching the other, which is the point a single monolith could not make. Docker Swarm was chosen as the orchestrator because it runs those containers as replicated services across several machines with little setup (see 2.4).
+The mandatory part takes the Module 3 TaskFlow API and:
 
-### 2.2 What the setup has to prove
+1. **Dockerfile:** containerize it with the multi-stage `Dockerfile` given in the brief (Maven build stage, `eclipse-temurin:21-jre-alpine` runtime stage).
+2. **Build and test locally:** `docker build`, `docker run`, then `curl /api/tasks`.
+3. **Deploy to Railway** from the GitHub repository and generate a public domain.
+4. **Verify the deployment:** call the live URL and take screenshots of the dashboard and the working URL.
 
-The deployment must be something a reviewer can inspect and break on purpose:
+The submission is a GitHub repository whose `README.md` holds the live URL, the screenshots, any errors and failures, and the stretch goals attempted.
 
-- **Containerization:** each service builds into its own image and runs identically on every node.
-- **CI/CD:** a push to `main` runs tests, assigns a version, builds and pushes the image, and deploys it with no manual steps.
-- **Replication and self-healing:** more than one copy of each API; stop a node and watch the lost replicas reappear elsewhere.
-- **Zero-downtime releases:** a rolling update, with automatic rollback on a bad image.
-- **Realistic security:** HTTPS, no database or admin ports on the internet, secrets outside Git.
+The five optional stretch goals are: (1) a CI pipeline that builds, tests and publishes the image to Docker Hub; (2) a frontend that calls the API; (3) the Simple CRM project instead of TaskFlow; (4) versioned Docker images; (5) security checks with OWASP Dependency-Check, an image scanner, and no committed secrets.
 
-It does not need to be a permanent production system, so a short-lived, low-cost environment was acceptable.
+### 1.2 How the project answers it
 
-### 2.3 How the platform was chosen
+The brief's subject is **DevOps: containers, pipelines and deployment**. These practices are easiest to demonstrate on a **microservice** system, where several independently built services have to be deployed, connected and updated without breaking each other. The Module 3 TaskFlow API was therefore split into three parts:
 
-The original plan was to deploy on **Railway** and have the platform run the Spring Boot services, which would have kept the infrastructure work small. That plan ended when Railway had an outage and a security incident and its service was down, so the project could not rely on it. The deployment pivoted to **Google Cloud (GCP) with Docker Swarm**, which also exposes the orchestration and networking layers that a managed platform hides. That is a better fit for a project about DevOps.
+| Part | Role | Technology | Docs |
+|---|---|---|---|
+| **Users service** | Login, user management; signs JWTs with an RSA private key | Spring Boot 4.1, Spring Security 7, JJWT 0.13, PostgreSQL 16 | [README][https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users] |
+| **Tasks API** | The TaskFlow task endpoints; only *verifies* JWTs with the public key | Spring Boot 4.1, Spring Security 7, JJWT 0.13, PostgreSQL 16 | [README][https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks] |
+| **Web app** | User interface with a backend-for-frontend (BFF) that calls both APIs | Next.js on Vercel | [README][https://github.com/ensanguine2279/sctp-aie-m4-assignment-web] |
 
-```mermaid
-flowchart LR
-    plan["Original plan<br/>Railway, managed platform<br/>runs the Spring Boot services"] --> inc{"Railway outage<br/>and security incident"}
-    inc -->|"platform down"| pivot["Pivot: self-managed<br/>Docker Swarm"]
-    pivot --> try["Free options first"]
-    try --> pwd["Play with Docker:<br/>deprecated"]
-    try --> oci["Oracle Cloud free tier:<br/>out of host capacity"]
-    try --> gcp["Google Cloud:<br/>3 small VMs"]
-    gcp --> done["Chosen"]
-```
+Each API has its own codebase, container image, database, pipeline and release cycle. A change to one is built, tested, versioned and deployed without touching the other, which is the point a single monolith could not make.
 
-Cost was still the main constraint, so free options were tried before GCP. Each failed for a practical reason:
+### 1.3 Mandatory tasks: what was done
 
-| Option | Outcome |
-|---|---|
-| Railway (original plan) | Abandoned: an outage and a security incident left the platform down |
-| Play with Docker | Rejected: the service has been deprecated |
-| Oracle Cloud (OCI) free tier | Attempted: VM creation failed with `500-InternalError, Out of host capacity`, so no free ARM instances could be created |
-| Google Cloud | Chosen: three small VMs, billed against account credit, enough for a three-node cluster |
+| Task | Brief | What was done | Where to look |
+|---|---|---|---|
+| 1. Dockerfile | Multi-stage `Dockerfile` given in the brief | Kept the two-stage pattern and hardened the runtime stage: non-root user, `apk upgrade` on every build, no `curl`, a liveness health check, and each service's own port (8022, 8077) instead of 8080 | [Users Dockerfile][https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/Dockerfile], [Tasks Dockerfile][https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/Dockerfile] |
+| 2. Build and test locally | `docker build`, `docker run`, `curl /api/tasks` | Each API runs locally with Docker Compose, its own Postgres, and its JWT key mounted as a secret. `/api/tasks` needs a token, so a bare `curl` returns 401; the smoke test logs in first, exercises the endpoints and checks that forged tokens are rejected | [Users compose][https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/docker-compose.yml], [Tasks compose][https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/docker-compose.yml], [Users authentication][https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-authentication.md], [Tasks authentication][https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/docker-compose.yml] |
+| 3. Deploy to Railway | Deploy from GitHub, generate a domain | **Railway was the plan, but it had an outage and a security incident.** The deployment moved to a three-node Docker Swarm on Google Cloud, behind Caddy with HTTPS (section 3.2) | [Swarm design and setup][https://github.com/ensanguine2279/sctp-aie-m4-assignment-swarm] |
+| 4. Verify the deployment | `curl` the live URL, screenshots | Live at `https://sctp-aie-m4-apigw.work.gd/api/tasks` (token required). Screenshots in section 1.5 | Section 5 |
 
-Three VMs matter more than their size. A Swarm manager quorum needs a majority of managers alive, so a three-node cluster is the smallest layout that survives losing one node.
+### 1.4 Stretch goals
 
-### 2.4 Why Swarm and not Kubernetes
+The brief asks for one stretch goal. Four were taken on, and they build on each other: the CI pipeline runs the security checks, publishes the versioned images and deploys them.
 
-| Factor | Docker Swarm | Kubernetes |
+| Option | Status | What was built | Evidence |
+|---|---|---|---|
+| 1. CI pipeline to Docker Hub | Done | GitHub Actions: tests and security scans, release, build and push to Docker Hub, then deploy to the swarm. Docker Hub credentials are repository secrets | [CI/CD pipeline][tasks-deploy], section 4.4. Successful run: `<add link>`. Docker Hub image: `<add link>` |
+| 2. Frontend | Done, on **Vercel instead of Netlify** | Next.js app with a BFF. The browser only talks to Vercel and the BFF calls the APIs server-side, so the APIs need no CORS configuration | [Web app README][web-readme]. Frontend URL: `<add link>` |
+| 3. Simple CRM instead of TaskFlow | Not taken | | |
+| 4. Versioned images | Done | semantic-release derives `MAJOR.MINOR.PATCH` from commit messages; images are also tagged with the commit SHA, and the swarm deploys by digest | Section 4.4. Docker Hub tags screenshot in section 1.5 |
+| 5. Security checks | Done for the users service; tasks API files ready, rollout pending | OWASP Dependency-Check, Trivy image scan, gitleaks over the whole history, and a project script that fails on committed keys, `.env` files or default secrets. All run in CI and gate the release | [Users security checks][users-security], [Tasks security checks][tasks-security] |
+
+Beyond the brief: two cooperating services with asymmetric JWTs, two replicas of each API across three nodes, rolling updates with automatic rollback, HTTPS, and optional Terraform for the infrastructure.
+
+### 1.5 Live URL and screenshots
+
+- **Live API:** `https://sctp-aie-m4-apigw.work.gd/api/tasks` (send a token from `POST /auth/login`)
+- **Frontend:** `<add Vercel URL>`
+
+With no Railway dashboard, the deployment is shown through the swarm itself:
+
+![Swarm services running](screenshots/swarm-services.png)
+![Portainer dashboard](screenshots/portainer.png)
+![Live API called with a token](screenshots/live-api.png)
+![Docker Hub tags](screenshots/dockerhub-tags.png)
+![Successful pipeline run](screenshots/pipeline-run.png)
+![Frontend showing tasks](screenshots/frontend.png)
+
+### 1.6 Errors and failures
+
+The brief asks for errors and failures to be reported. The main ones, and how each was handled:
+
+| What went wrong | Outcome | Details |
 |---|---|---|
-| Starting point | Existing `docker-compose.yml` files convert to stack files with small edits | Needs new manifests or Helm charts |
-| Footprint | Built into Docker; fits on 4 GB VMs with room for the apps | Control plane alone uses a large share of a 4 GB node |
-| Concepts to learn | Services, stacks, overlay networks, secrets | Many more objects |
-| Needed features | Replicas, rolling updates, health checks, rollback, secrets, placement | Same, plus far more than this project needs |
+| Railway outage and security incident | Deployment moved to a self-managed Docker Swarm | Section 3.2 |
+| Play with Docker deprecated | Not usable as a free swarm host | Section 3.2 |
+| Oracle Cloud free tier: `500-InternalError, Out of host capacity` | No free ARM VMs could be created; moved to the GCP free trial | Section 3.2 |
+| Trivy: CVEs in `curl`, `libcurl` and `brotli-libs` in the runtime image | Removed `curl`, switched the health check to BusyBox `wget`, `apk upgrade` on every build | [Users security checks][users-security] |
+| Dependency-Check: Spring Boot 4.1.1 ships Tomcat 11.0.24 with 11 CVEs | Upgraded to Spring Boot 4.1.2 | [Users security checks][users-security] |
+| `aquasecurity/trivy-action` tags hijacked (GHSA-69fq-xp46-6x23) | Action pinned by commit SHA | [Users security checks][users-security] |
+| NVD API key request form hung | Dependency-Check uses its own NVD mirror instead | [Users security checks][users-security] |
 
-Swarm gives every property the project needs with the least machinery. The trade-off is a smaller ecosystem and no built-in autoscaling.
+Smaller issues hit along the way are recorded as gotchas in [PROJECT-CONTEXT][project-context], section 8.
 
-## 3. Architecture
+---
+
+## 2. The system at a glance
 
 ```mermaid
 flowchart TB
-    web["Next.js BFF on Vercel<br/>calls the APIs server-side"]
+    browser["Browser"] --> web["Next.js app + BFF<br/>on Vercel"]
 
-    subgraph edge["Entry point - swarm-1 (static IP)"]
-        caddy["Caddy :80 / :443<br/>TLS, routing, blocks /actuator*"]
+    subgraph gcp["Google Cloud: 3-node Docker Swarm"]
+        caddy["Caddy on swarm-1<br/>HTTPS, routing, hides /actuator"]
+        subgraph apps["Application tier, 2 replicas each"]
+            direction LR
+            us["Users service :8022<br/>signs JWTs"]
+            ts["Tasks API :8077<br/>verifies JWTs"]
+        end
+        subgraph data["Data tier, pinned to swarm-1"]
+            direction LR
+            udb[("user-db")]
+            tdb[("task-db")]
+        end
     end
 
-    subgraph apps["Application tier - 2 replicas each, spread across nodes"]
-        direction LR
-        us["user-service :8022<br/>signs JWTs"]
-        ts["task-service :8077<br/>verifies JWTs"]
-    end
-
-    subgraph data["Data tier - swarm-1, local volumes"]
-        direction LR
-        udb[("user-db<br/>postgres 16")]
-        tdb[("task-db<br/>database taskdb")]
-    end
+    gh["GitHub Actions<br/>test, scan, release, build"] -->|"image"| hub["Docker Hub"]
+    gh -->|"SSH: docker stack deploy"| gcp
+    hub -->|"pull by digest"| apps
 
     web -->|"HTTPS 443"| caddy
     caddy -->|"/api/tasks*"| ts
@@ -102,43 +134,103 @@ flowchart TB
     ts --> tdb
 ```
 
-### 3.1 Where things run
+Public entry point: `https://sctp-aie-m4-apigw.work.gd`.
+
+---
+
+## 3. Design and motivation
+
+This section summarises the reasoning. The full version, with every trade-off, is in the [Swarm design and motivation][swarm-design] document.
+
+### 3.1 Why two services and not one
+
+Splitting the application along a security boundary gives a natural microservice cut: one service *issues* identity, the other *consumes* it. That split also drives the key design (section 3.4), so the architecture and the security model reinforce each other rather than being two separate concerns.
+
+### 3.2 How the platform was chosen
+
+The original plan was to deploy on **Railway**, a managed platform that would have run the Spring Boot services with little infrastructure work. Railway then had an outage and a security incident, and the project could not rely on it. The deployment pivoted to a self-managed **Docker Swarm**, which also exposes the orchestration and networking layers a managed platform hides: a better fit for a DevOps assignment.
 
 ```mermaid
 flowchart LR
-    subgraph gcp["GCP project, zone asia-southeast1-b"]
-        subgraph s1["swarm-1 (manager)"]
-            caddy["proxy_caddy"]
-            udb[("user-db")]
-            tdb[("task-db")]
-            ag1["portainer agent"]
-        end
-        subgraph s2["swarm-2 (manager)"]
-            a2["user-service and<br/>task-service replicas"]
-            ag2["portainer agent"]
-        end
-        subgraph s3["swarm-3 (manager)"]
-            a3["user-service and<br/>task-service replicas"]
-            ptn["Portainer server"]
-            ag3["portainer agent"]
-        end
-    end
-    s1 <-->|"swarm control and overlay traffic"| s2
-    s2 <-->|"swarm control and overlay traffic"| s3
-    s1 <--> s3
+    plan["Railway<br/>(original plan)"] --> inc{"Outage and<br/>security incident"}
+    inc --> pivot["Self-managed<br/>Docker Swarm"]
+    pivot --> pwd["Play with Docker:<br/>deprecated"]
+    pivot --> oci["Oracle Cloud free tier:<br/>out of host capacity"]
+    pivot --> gcp["Google Cloud free trial:<br/>3 small VMs (chosen)"]
 ```
 
-Only three things are pinned to a node; everything else floats and Swarm balances it.
+Cost was the main constraint. The GCP free trial (US$300, 90 days) covers three `e2-medium` VMs, as long as the environment is torn down before the trial ends. Three VMs matter more than their size: a Swarm manager quorum needs a majority alive, so three is the smallest cluster that survives losing a node.
 
-| Pinned item | Node | Reason |
+The Railway plan left one lasting trace in the code: the users service can take its private key as `JWT_PRIVATE_KEY_BASE64`, for platforms that cannot mount files. See [users authentication][users-auth].
+
+### 3.3 Why Swarm and not Kubernetes
+
+| Factor | Docker Swarm | Kubernetes |
 |---|---|---|
-| `user-db`, `task-db` | `swarm-1` (label `db=true`) | Their data lives in a local volume on that node's disk |
-| `proxy_caddy` | `swarm-1` (hostname constraint) | The DNS name points at this node's static IP; certificates are stored on its disk |
-| Portainer server | `swarm-3` | Keeps the dashboard off `swarm-1`, which already carries the databases and proxy |
+| Starting point | Existing `docker-compose.yml` files become stack files with small edits | New manifests or Helm charts |
+| Footprint | Built into Docker; fits on 4 GB VMs with room for the apps | The control plane alone takes a large share of a 4 GB node |
+| Features needed | Replicas, rolling updates, health checks, rollback, secrets, placement | The same, plus far more than this project needs |
 
-All three nodes are intended to be managers so the cluster keeps quorum when one is lost. This should be confirmed with `docker node ls`.
+Swarm gives every property the assignment needs with the least machinery. The trade-off is a smaller ecosystem and no built-in autoscaling.
 
-### 3.2 Request path
+### 3.4 Security model
+
+The security design is the thread that runs through every layer:
+
+- **Asymmetric tokens (RS256).** Only the users service holds the private key. The tasks API holds only `public.pem` and contains no token-issuing code (CI fails the build if it does). A compromised tasks API cannot forge a login.
+- **Strict validation.** Every token is checked for RS256 only, issuer, audience, expiry (30 s skew) and a positive `uid` claim. HS256 and unsigned tokens are rejected.
+- **Ownership, not just roles.** In the tasks API, ADMIN and MANAGER see every task; anyone else sees only their own, and someone else's task is a 404, indistinguishable from a missing one.
+- **Keys never travel with the code.** Not in Git, not in an image, not in `.env`. In the swarm they are Swarm secrets mounted as files.
+- **One public door.** Only Caddy (80, 443) and SSH (22) are reachable from the internet. Databases and Portainer are reached through SSH tunnels.
+- **The token never reaches browser JavaScript.** The BFF keeps it in an httpOnly cookie.
+
+Details: [users authentication][users-auth], [tasks authentication][tasks-auth], [web app][web-readme].
+
+### 3.5 Design decisions at a glance
+
+| # | Decision | Main benefit | Main trade-off |
+|---|---|---|---|
+| D1 | Three nodes, all managers | Survives one node loss | Managers also run workloads |
+| D2 | One stack per concern (`users`, `tasks`, `proxy`, `portainer`) | Independent deploys, isolated networks | Caddy joins both networks as external |
+| D3 | Caddy as the only door | Free TLS, one hostname, hidden actuator | Single proxy node |
+| D4 | Databases pinned, not replicated | Simple, no shared storage | Data tier not highly available |
+| D5 | JWT keys as Swarm secrets, split by role | Tasks API cannot mint tokens | Rotate by renaming the secret |
+| D6 | Liveness health check | Safe rollouts, no restarts on database blips | Actuator probes must be permitted |
+| D7 | Start-first updates with rollback | No downtime, self-reverting | Needs spare memory |
+| D8 | Restart policy instead of `depends_on` | Survives start-order races | A few failed starts at boot |
+| D9 | Image references by digest | Every node runs the exact image CI built | Longer image strings |
+| D10 | Admin access only through SSH tunnels | No extra public ports | Tunnel needed each time |
+| D11 | Three public ports (22, 80, 443) | Small attack surface | Port 22 still public |
+| D12 | Front end stays on Vercel | Already working, no VM load | Caddy sees Vercel IPs only |
+| D13 | Free domain from DNSExit | HTTPS at no cost | Depends on the provider's terms |
+
+Each decision is explained in full in the [design document][swarm-design], section 4.
+
+---
+
+## 4. Architectural implementation
+
+### 4.1 Application tier
+
+The two APIs share a token contract. If they disagree on issuer or audience, every token fails with a 401 that looks like a signature problem.
+
+| Claim | Value |
+|---|---|
+| Algorithm | `RS256` |
+| `iss` | `user-service` (`JWT_ISSUER`) |
+| `aud` | `taskflow-api` (`JWT_AUDIENCE`), serialised as an array |
+| `sub` | username, lowercase |
+| `uid` | user's database id; required by the tasks API |
+| `roles` | strings starting with `ROLE_`, e.g. `["ROLE_ADMIN"]` |
+| `iat`, `exp` | default lifetime one hour |
+
+**Users service** issues and validates tokens, derives its public key from the private key at startup, and serves login and user management. See the [README][users-readme] and [authentication][users-auth] docs.
+
+**Tasks API** verifies tokens with the public key only, enforces the role matrix with `@PreAuthorize` and task ownership with `TaskAccessPolicy`, and accepts request DTOs (never the entity), so a client cannot set `id` or `userId`. See the [README][tasks-readme] and [authentication][tasks-auth] docs.
+
+**Web app** runs on Vercel. Its BFF calls the APIs server-side, so the APIs need no CORS configuration. See the [web app README][web-readme].
+
+### 4.2 Request path
 
 ```mermaid
 sequenceDiagram
@@ -146,18 +238,18 @@ sequenceDiagram
     participant B as Browser
     participant V as Next.js BFF (Vercel)
     participant C as Caddy (swarm-1)
-    participant U as user-service
-    participant T as task-service
+    participant U as Users service
+    participant T as Tasks API
     participant D as task-db
 
     B->>V: Log in (form post)
     V->>C: POST /auth/login (HTTPS)
-    C->>U: Forward (no /api/tasks prefix, so the default route)
+    C->>U: Forward (default route)
     U-->>V: JWT signed with the private key
     V-->>B: Set httpOnly cookie
     B->>V: Load tasks (cookie)
     V->>C: GET /api/tasks, Authorization: Bearer JWT
-    C->>T: Forward
+    C->>T: Forward (/api/tasks*)
     T->>T: Verify signature with the public key
     T->>D: Query
     D-->>T: Rows
@@ -165,165 +257,129 @@ sequenceDiagram
     V-->>B: Page
 ```
 
-The browser only ever talks to Vercel, so the APIs need no CORS configuration, and the token is never readable by browser JavaScript.
+### 4.3 Containerization
 
-## 4. Design decisions
+Both APIs use the same image pattern: a multi-stage build onto `eclipse-temurin:21-jre-alpine`, running as a non-root user, with `apk upgrade` on every build and no `curl`. Fewer packages means fewer CVEs for Trivy to find. The health check calls `/actuator/health/liveness` with BusyBox `wget` on `127.0.0.1`. Liveness ignores the database, so a short Postgres outage does not make Swarm kill healthy replicas (design D6).
 
-Each decision lists the choice, the reason, and what it costs.
+Locally, each API runs with its own Docker Compose stack, mounting only the key it needs as a secret: the private key for users (app 8022, database 5422), the public key for tasks (app 8077, database 5433).
 
-### D1. Three nodes, all managers
+| | Users service | Tasks API |
+|---|---|---|
+| Image | [README-Dockerfile][users-dockerfile] | [README-Dockerfile][tasks-dockerfile] |
+| Local stack | [README-docker-compose][users-compose] | [README-docker-compose][tasks-compose] |
 
-- **Choice:** three VMs, all in the manager role.
-- **Why:** Swarm uses Raft consensus, which needs a majority. With three managers one can fail and the cluster still accepts changes. With one or two managers, losing one node loses the control plane.
-- **Cost:** managers also run workloads here, so a small VM carries both jobs. Acceptable at this scale.
+### 4.4 CI/CD and the security gate
 
-### D2. One stack per concern
-
-- **Choice:** four stacks: `users`, `tasks`, `proxy`, `portainer`.
-- **Why:** each stack deploys and rolls back independently, so a Tasks release never restarts the Users service. Each API stack owns its own overlay network, which keeps the two applications isolated from one another.
-- **Cost:** Caddy must join both application networks, declared as external networks (`users_users-network`, `tasks_tasks-network`) in the proxy stack. Stack names must match the file or stray services appear (a past mistake produced `users_task-service`).
-
-### D3. A reverse proxy as the only door
-
-- **Choice:** Caddy 2 publishes ports 80 and 443 in host mode on `swarm-1`. The application ports (8022, 8077) are not published.
-- **Why:**
-  - Caddy gets and renews free Let's Encrypt certificates on its own.
-  - One public hostname serves both APIs, split by path.
-  - It can hide endpoints. `/actuator*` returns 404 publicly, while the container health check still reaches it on `localhost`.
-  - Host mode keeps the real client IP visible to Caddy and opens the port only on the node that runs it. Ingress mode would open the port on every node.
-- **Cost:** one Caddy replica on one node is a single point of failure for HTTPS (see section 6).
-- **Detail to remember:** Caddy runs `handle` blocks in written order and the first match wins, so the actuator block comes first. Swarm configs are immutable, so a changed Caddyfile needs a new config name.
-
-### D4. Databases pinned, not replicated
-
-- **Choice:** each database is one replica, pinned to `swarm-1` with a node label, on a local named volume.
-- **Why:** Postgres replication is a separate engineering problem, and Swarm has no shared storage. A local volume only works if the container always returns to the same node, so the container is pinned to it.
-- **Cost:** the data tier does not survive losing `swarm-1`. The project demonstrates availability of the application tier only. Section 6 lists the ways to remove this limit.
-
-### D5. JWT keys as Swarm secrets, split by role
-
-- **Choice:** an asymmetric key pair. The private key is mounted only into `user-service`; the public key only into `task-service`.
-- **Why:** the Tasks API only needs to verify tokens, so it never holds anything that can mint them. A compromise of the Tasks API cannot forge logins. Secrets are mounted as files under `/run/secrets`, not passed as environment variables.
-- **Cost:** Swarm secrets are immutable. To rotate a key, give the secret a new name (for example `jwt_private_key_v2`) in the stack file. Production keys must be a fresh pair, not the development ones.
-
-### D6. Health checks use the liveness endpoint
-
-- **Choice:** the container health check calls `/actuator/health/liveness` on `localhost`, with a 90 second start period.
-- **Why:** Swarm only counts a replica as healthy once the check passes, which is what makes a rolling update safe. Liveness is used instead of the full `/actuator/health` because it ignores the database; a short Postgres outage then does not cause Swarm to kill healthy application containers.
-- **Cost:** the application must expose the probe endpoints and permit them in Spring Security, otherwise every replica is reported unhealthy and every deploy rolls back.
-
-### D7. Rolling updates with automatic rollback
-
-- **Choice:** `order: start-first`, parallelism 1, a 30 second monitor period, `failure_action: rollback`.
-- **Why:** start-first brings up the new replica before stopping the old one, so there is always a serving replica. A bad release fails its health check and reverts on its own.
-- **Cost:** during an update a node briefly runs one extra container, which needs spare memory. Replicas have a 512 MB limit and the JVM heap is capped with `-XX:MaxRAMPercentage=70`.
-
-### D8. Retry policy replaces `depends_on`
-
-- **Choice:** `restart_policy: on-failure` with a 10 second delay and up to 10 attempts.
-- **Why:** Swarm ignores `depends_on`. If an API starts before its database is ready it exits, and the restart policy retries until Postgres accepts connections.
-
-### D9. Immutable image references
-
-- **Choice:** the deploy job sets `IMAGE_TAG` to `version@sha256:digest`.
-- **Why:** the version tag is readable, and the digest guarantees every node pulls the exact image that CI built, even if a tag is later moved. Tags also include the commit SHA for traceability.
-- **Cost:** hand deploys must reuse the running image reference (read from `docker service inspect`), or the tag is left blank and the deploy fails.
-
-### D10. Admin access only through SSH tunnels
-
-- **Choice:** no firewall rule opens a database port (5422, 5477) or Portainer (9443). DBeaver and Portainer are reached through `ssh -L` tunnels.
-- **Why:** both are powerful interfaces: one reads data, the other controls the Docker socket. Putting them behind SSH reuses an authentication path that already exists and removes two attack surfaces.
-- **Cost:** a tunnel must be open to use either one, and it has to be run on the machine whose browser or client will use it. The database tunnel needs a host-mode published port on `swarm-1`, which is added to the stack file only when needed.
-
-### D11. Firewall: three public ports
-
-| Port | Source | Rule | Purpose |
-|---|---|---|---|
-| TCP 22 | Internet | default SSH rule | Admin, CI deploys, tunnels |
-| TCP 80, 443 | Internet | `swarm-web` | Caddy: HTTPS, certificate issuance, redirect |
-| 2377/tcp, 7946/tcp+udp, 4789/udp | Other nodes | `default-allow-internal` | Swarm control and overlay traffic |
-
-Port 80 must stay open, since Let's Encrypt validates the domain over it. The earlier rule that opened 8022 and 8077 was deleted once the proxy was in place.
-
-### D12. Frontend stays outside the swarm
-
-- **Choice:** the Next.js app and its BFF stay on Vercel.
-- **Why:** it already works and deploys automatically; moving it would add load to small VMs for no benefit. The BFF calls the APIs from the server side and keeps the JWT in an httpOnly cookie.
-- **Cost:** Caddy sees Vercel's IP addresses, not end users', so IP-based rate limiting at the proxy would affect all site users at once. If the swarm or Caddy is down, the site loads but its API calls fail.
-
-## 5. Delivery pipeline
+Both API repositories use the same workflow file; only five values at the top differ (image name, stack name, stack file, env file, service name).
 
 ```mermaid
 flowchart LR
-    push["Push to main"] --> test["test<br/>mvn -B -ntp test"]
-    test --> rel["release<br/>semantic-release:<br/>tag + GitHub Release"]
-    rel -->|"new version published"| build["build-and-push<br/>Docker Hub image,<br/>outputs digest"]
-    build --> deploy["deploy<br/>scp stack file, SSH,<br/>docker stack deploy"]
-    rel -->|"no release<br/>(docs, chore)"| stop["stop"]
+    push["Push to main"] --> test["test<br/>mvn test"]
+    push --> sec["security<br/>gitleaks, security-check.sh,<br/>image build, Trivy"]
+    push --> dc["dependency-check<br/>OWASP, fail on CVSS 7+"]
+    test --> rel["release<br/>semantic-release"]
+    sec --> rel
+    dc --> rel
+    rel -->|"new version"| build["build-and-push<br/>Docker Hub, digest"]
+    rel -->|"docs / chore"| stop["no release"]
+    build --> deploy["deploy<br/>SSH, docker stack deploy"]
     deploy --> wait{"update state"}
-    wait -->|completed| ok["green run"]
-    wait -->|"rollback or paused"| fail["red run"]
+    wait -->|"completed"| ok["green"]
+    wait -->|"rollback"| fail["red"]
 ```
 
-Design points:
+- **Nothing ships unless every check passes.** A failed test or scan means no tag, no image and no deploy.
+- **Versions come from commit messages:** `fix:` patch, `feat:` minor, `feat!:` major; `docs:` and `chore:` release nothing.
+- **The deploy waits for the result** and fails the run if Swarm rolls back, so a green run means healthy replicas.
+- **The stack file in Git is the source of truth**; the job copies it to `swarm-1` on every deploy.
+- **Findings are never silenced to pass.** False positives are suppressed only with a reason and an expiry date.
 
-- **Gated stages:** each job needs the one before it, so a failing test builds nothing.
-- **Versions from commit messages:** semantic-release reads conventional commits. `fix:` is a patch, `feat:` a minor, `feat!:` or a `BREAKING CHANGE:` footer a major. `docs:` and `chore:` produce no release, so no image is built and nothing deploys.
-- **Deploy waits for the result:** the job polls the service's `UpdateStatus` and fails on a rollback, so a green run means the new replicas are healthy.
-- **Serialised deploys:** a concurrency group stops two runs deploying one stack at once, and never cancels one halfway.
-- **Stack file in Git is the source of truth:** the job copies it to `swarm-1` on every deploy, overwriting any hand edit on the server.
-- **Secrets:** `DOCKER_USERNAME`, `DOCKER_TOKEN`, `SSH_PRIVATE_KEY`, `SSH_KNOWN_HOSTS`, `SSH_HOST` and `SSH_USER` per repository. The deploy key is dedicated to CI and is never reused for DBeaver. Pinning the host key in `SSH_KNOWN_HOSTS` stops the runner trusting an impostor server.
-- **Reuse:** the two API repositories use the same workflow; only five values at the top of the file differ (image name, stack name, stack file, env file, service name).
+Details: [CI/CD pipeline][tasks-deploy], [users security checks][users-security], [tasks security checks][tasks-security].
 
-## 6. Failure behaviour and known limits
+### 4.5 Infrastructure
 
-```mermaid
-stateDiagram-v2
-    [*] --> Healthy
-    Healthy --> NodeDown: swarm-2 or swarm-3 fails
-    NodeDown --> Rescheduling: tasks marked lost
-    Rescheduling --> Healthy: replicas restart on surviving nodes
-    Healthy --> ProxyDown: swarm-1 fails
-    ProxyDown --> Outage: HTTPS and both databases gone
-    Outage --> Healthy: swarm-1 returns
-```
+| Node | Role | Runs |
+|---|---|---|
+| `swarm-1` | Manager, static public IP | Caddy, `user-db`, `task-db`, API replicas, Portainer agent |
+| `swarm-2` | Manager | API replicas, Portainer agent |
+| `swarm-3` | Manager | API replicas, Portainer server, Portainer agent |
 
-| What fails | Result |
+- **VMs, firewall, swarm:** built by hand following the [setup guide][swarm-setup], or by `terraform apply` with the [Terraform project][terraform]. Env files and JWT keys are created by hand on `swarm-1` in both cases, so they never enter Terraform state.
+- **Caddy** terminates HTTPS with a Let's Encrypt certificate, routes `/api/tasks*` to the tasks API and everything else to the users service, and returns 404 for `/actuator*`. See the [setup guide][swarm-setup], section 8.
+- **Portainer** gives a visual view of replicas and failover for the demo, reachable only through an SSH tunnel to `swarm-3`. See the [setup guide][swarm-setup], section 9.
+
+---
+
+## 5. Verification and demonstration
+
+| Layer | How it is checked | Where |
+|---|---|---|
+| Code | Unit, controller, ownership and end-to-end tests (`mvn test`) | [Users README][users-readme], [Tasks README][tasks-readme] |
+| Running stack | Smoke tests against the real containers, including forged tokens (tampered, unsigned, HS256, wrong key, wrong issuer, wrong audience, expired) | [Tasks authentication][tasks-auth] |
+| Supply chain | gitleaks, Dependency-Check, Trivy, `security-check.sh` on every push | [Users security][users-security], [Tasks security][tasks-security] |
+| Cluster | Node, replica, placement, HTTPS, closed ports and failover checks | [Setup guide][swarm-setup], section 10 |
+| Failover drill | Stop a node, watch replicas reschedule | [Runbook][swarm-runbook] |
+
+---
+
+## 6. Known limits and next steps
+
+| Limit | Possible fix |
 |---|---|
-| `swarm-2` or `swarm-3` | Surviving replicas keep serving; Swarm starts replacements on the remaining nodes within seconds |
-| `swarm-1` | The entry point and both databases go with it; the API replicas elsewhere are unreachable. This is the design's main limit |
-| Bad release | Health check fails, Swarm rolls back, the CI job fails |
-| Database briefly down | API replicas stay up (liveness ignores the database) and requests that need data fail until it returns |
+| `swarm-1` carries the proxy and both databases: losing it is an outage | Managed or replicated Postgres; more than one proxy node |
+| No database backups | Scheduled `pg_dump` copied off the VM |
+| `ddl-auto=create` recreates tables on every start | `update` or a migration tool before keeping real data |
+| Tokens cannot be revoked | Keep them short-lived; a JWKS endpoint with `kid` for key rotation |
+| Env files and keys live only on `swarm-1` | Copy to the other managers, or move every value into Swarm secrets |
+| Demo database ports published on `swarm-1` | Remove after the demo, with their firewall rules |
 
-Known limits and how to remove them:
+The project's working status and open items are tracked in [PROJECT-CONTEXT][project-context].
 
-| Limit | Fix |
-|---|---|
-| Databases pinned to one node and one disk | Managed Postgres with a free tier, or replicated Postgres such as Patroni |
-| Single Caddy on one node, one DNS record | More than one proxy node behind a load balancer or several DNS records |
-| No backups | Scheduled `pg_dump` copied off the VM |
-| `ddl-auto=create` if still set | Use `update`, or a migration tool, so a restart does not wipe tables |
-| Env files and JWT keys exist only on `swarm-1` | Copy them to the other managers, or move every value into Swarm secrets |
-| Port 22 open to the internet | Key-only login (the GCP default), a dedicated deploy key, and branch protection on `main` |
-| Caddy can be called by anyone, not only the BFF | Optional shared-secret header that Caddy checks |
+---
 
-## 7. Operating cost and cleanup
+## 7. Full document index
 
-Cost comes from three VMs, their disks, and the reserved static IP, which GCP bills when it is not attached to a running VM. To stop all charges: remove the stacks, delete the VMs and the `swarm-web` rule, release the static IP, and check Disks and IP addresses in the console for leftovers. Keep the stack files, the Caddyfile and the workflows in Git so the environment can be rebuilt from the documentation.
+| Area | Document | Covers |
+|---|---|---|
+| Project | [PROJECT-CONTEXT][project-context] | Status, settled decisions, conventions, gotchas |
+| Deployment | [Swarm design and motivation][swarm-design] | Why the deployment looks the way it does |
+| Deployment | [Swarm setup guide][swarm-setup] | Building the environment step by step |
+| Deployment | [Swarm architecture and runbook][swarm-runbook] | Day-to-day operations |
+| Deployment | [Terraform README][terraform] | Infrastructure as code |
+| Users service | [README][users-readme] | Overview, configuration, running |
+| Users service | [README-authentication][users-auth] | RS256 signing, key loading, token contract |
+| Users service | [README-security-checks][users-security] | CI security gate and first-run findings |
+| Users service | [README-Dockerfile][users-dockerfile] | Image build |
+| Users service | [README-docker-compose][users-compose] | Local stack |
+| Tasks API | [README][tasks-readme] | Overview, endpoints, running |
+| Tasks API | [README-authentication][tasks-auth] | Verification, roles, ownership, smoke test |
+| Tasks API | [README-deployment][tasks-deploy] | CI/CD pipeline |
+| Tasks API | [README-security-checks][tasks-security] | CI security gate |
+| Tasks API | [README-Dockerfile][tasks-dockerfile] | Image build |
+| Tasks API | [README-docker-compose][tasks-compose] | Local stack |
+| Web app | [README][web-readme] | Next.js app and BFF |
 
-## 8. Decision summary
+<!--
+  Link targets. Replace <owner> and the repository names once, here, and every link above updates.
+-->
 
-| # | Decision | Main benefit | Main trade-off |
-|---|---|---|---|
-| D1 | Three managers | Survives one node loss | Managers also run workloads |
-| D2 | One stack per concern | Independent deploys, isolated networks | Cross-stack networking for Caddy |
-| D3 | Caddy as the only door | Free TLS, one hostname, hidden actuator | Single proxy node |
-| D4 | Databases pinned | Simple, no shared storage needed | Data tier not highly available |
-| D5 | Split JWT keys | Tasks API cannot mint tokens | Immutable secrets, rotate by renaming |
-| D6 | Liveness health check | Safe rollouts, no restart on DB blips | Needs actuator setup |
-| D7 | Start-first updates with rollback | No downtime, self-reverting | Needs spare memory |
-| D8 | Restart policy over `depends_on` | Works with start order races | A few failed starts at boot |
-| D9 | Image digest references | Exact, repeatable deploys | Slightly longer image strings |
-| D10 | SSH tunnels for admin | No extra public ports | Tunnel needed each time |
-| D11 | Three public ports | Small attack surface | Port 22 still public |
-| D12 | Frontend on Vercel | Already working, no VM load | Caddy sees Vercel IPs only |
+[project-context]: https://github.com/<owner>/<docs-repo>/blob/main/PROJECT-CONTEXT.md
+[swarm-design]: https://github.com/<owner>/<infra-repo>/blob/main/docs/swarm-gcp-design.md
+[swarm-setup]: https://github.com/<owner>/<infra-repo>/blob/main/docs/swarm-gcp-setup-guide.md
+[swarm-runbook]: https://github.com/<owner>/<infra-repo>/blob/main/docs/swarm-architecture-runbook.md
+[terraform]: https://github.com/<owner>/<infra-repo>/blob/main/README.md
+
+[users-readme]: https://github.com/<owner>/<users-repo>/blob/main/README.md
+[users-auth]: https://github.com/<owner>/<users-repo>/blob/main/README-authentication.md
+[users-security]: https://github.com/<owner>/<users-repo>/blob/main/README-security-checks.md
+[users-dockerfile]: https://github.com/<owner>/<users-repo>/blob/main/README-Dockerfile.md
+[users-compose]: https://github.com/<owner>/<users-repo>/blob/main/README-docker-compose.md
+
+[tasks-readme]: https://github.com/<owner>/<tasks-repo>/blob/main/README.md
+[tasks-auth]: https://github.com/<owner>/<tasks-repo>/blob/main/README-authentication.md
+[tasks-deploy]: https://github.com/<owner>/<tasks-repo>/blob/main/README-deployment.md
+[tasks-security]: https://github.com/<owner>/<tasks-repo>/blob/main/README-security-checks.md
+[tasks-dockerfile]: https://github.com/<owner>/<tasks-repo>/blob/main/README-Dockerfile.md
+[tasks-compose]: https://github.com/<owner>/<tasks-repo>/blob/main/README-docker-compose.md
+
+[web-readme]: https://github.com/<owner>/<web-repo>/blob/main/README.md
