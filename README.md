@@ -66,7 +66,7 @@ The brief asks for one stretch goal. Four were taken on, and they build on each 
 | 1. CI pipeline to Docker Hub | Done | GitHub Actions: tests and security scans, release, build and push to Docker Hub, then deploy to the swarm. Docker Hub credentials are repository secrets | [Users API CI/CD pipeline][users-deploy], [Tasks API CI/CD pipeline][tasks-deploy], section 4.4. Successful run: `<add link>`, [User service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/user-service/general), [Task service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/task-service/general) |
 | 2. Frontend | Done, on **Vercel instead of Netlify** | Next.js app with a BFF. The browser only talks to Vercel and the BFF calls the APIs server-side, so the APIs need no CORS configuration | [Web app README][web-readme]. Frontend URL: <https://taskmaster-hakngrow.vercel.app> (Login required) |
 | 3. Simple CRM instead of TaskFlows | Not taken | | |
-| 4. Versioned images | Done | semantic-release derives `MAJOR.MINOR.PATCH` from commit messages; images are also tagged with the commit SHA, and the swarm deploys by digest | Section 4.4. Docker Hub tags screenshot in section 1.5 |
+| 4. Versioned images | Done | semantic-release derives `MAJOR.MINOR.PATCH` from commit messages; images are also tagged with the commit SHA, and the swarm deploys by digest | Section 4.4. Docker Hub tags screenshot in [Section 1.5](#15-live-url-and-screenshots) |
 | 5. Security checks | Done for the users service; tasks API files ready, rollout pending | OWASP Dependency-Check, Trivy image scan, gitleaks over the whole history, and a project script that fails on committed keys, `.env` files or default secrets. All run in CI and gate the release | [Users security checks][users-security], [Tasks security checks][tasks-security] |
 
 Beyond the brief: two cooperating services with asymmetric JWTs, two replicas of each API across three nodes, rolling updates with automatic rollback, HTTPS, and optional Terraform for the infrastructure.
@@ -204,7 +204,7 @@ The security design is the thread that runs through every layer:
 - **One public door.** Only Caddy (80, 443) and SSH (22) are reachable from the internet. Databases and Portainer are reached through SSH tunnels.
 - **The token never reaches browser JavaScript.** The BFF keeps it in an httpOnly cookie.
 
-Details: [users authentication](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-authentication.md), [tasks authentication](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/README-authentication.md), [web app](https://github.com/ensanguine2279/sctp-aie-m4-assignment-web).
+Details: [users authentication][user-auth], [tasks authentication][tasks-auth], [web app][web-readme].
 
 ### 3.5 Design decisions at a glance
 
@@ -244,7 +244,7 @@ The two APIs share a token contract. If they disagree on issuer or audience, eve
 | `roles` | strings starting with `ROLE_`, e.g. `["ROLE_ADMIN"]` |
 | `iat`, `exp` | default lifetime one hour |
 
-**Users service** issues and validates tokens, derives its public key from the private key at startup, and serves login and user management. See the [README](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users) and [authentication](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-authentication.md) docs.
+**Users service** issues and validates tokens, derives its public key from the private key at startup, and serves login and user management. See the [README][users-readme] and [authentication][users-auth] docs.
 
 **Tasks API** verifies tokens with the public key only, enforces the role matrix with `@PreAuthorize` and task ownership with `TaskAccessPolicy`, and accepts request DTOs (never the entity), so a client cannot set `id` or `userId`. See the [README][tasks-readme] and [authentication][tasks-auth] docs.
 
@@ -314,7 +314,7 @@ flowchart LR
 - **The stack file in Git is the source of truth**; the job copies it to `swarm-1` on every deploy.
 - **Findings are never silenced to pass.** False positives are suppressed only with a reason and an expiry date.
 
-Details: [CI/CD pipeline][tasks-deploy], [users security checks][users-security], [tasks security checks][tasks-security].
+Details: [users CI/CD pipeline][users-deploy], [tasks CI/CD pipeline][tasks-deploy], [users security checks][users-security], [tasks security checks][tasks-security].
 
 ### 4.5 Infrastructure
 
@@ -392,8 +392,8 @@ The project's working status and open items are tracked in [PROJECT-CONTEXT][pro
 [users-auth]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-authentication.md
 [users-deploy]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-deployment.md
 [users-security]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-security-checks.md
-[users-dockerfile]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-docker-compose.md
-[users-compose]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-Dockerfile.md
+[users-dockerfile]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-Dockerfile.md
+[users-compose]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/blob/main/README-docker-compose.md
 
 [tasks-readme]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/README.md
 [tasks-auth]: https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/blob/main/README-authentication.md
