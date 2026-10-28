@@ -63,16 +63,16 @@ The brief asks for one stretch goal. Four were taken on, and they build on each 
 
 | Option | Status | What was built | Evidence |
 |---|---|---|---|
-| 1. CI pipeline to Docker Hub | Done | GitHub Actions: tests and security scans, release, build and push to Docker Hub, then deploy to the swarm. Docker Hub credentials are repository secrets | [Users API CI/CD pipeline][users-deploy], [Tasks API CI/CD pipeline][tasks-deploy], [Section 4.4](#44-cicd-and-the-security-gate). Successful run: `<add link>`, [User service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/user-service/general), [Task service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/task-service/general) |
+| 1. CI pipeline to Docker Hub | Done | GitHub Actions: tests and security scans, release, build and push to Docker Hub, then deploy to the swarm. Docker Hub credentials are repository secrets | [Users API deployment][users-deploy], [Tasks API deployment][tasks-deploy], [Section 4.4](#44-cicd-and-the-security-gate). Successful run: [Users CI/CD pipeline](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-users/actions/runs/40509186162), [Tasks CI/CD pipeline](https://github.com/ensanguine2279/sctp-aie-m4-assignment-api-tasks/actions/runs/40508417611), [User service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/user-service/general), [Task service Docker Hub images](https://hub.docker.com/repository/docker/ensanguine/task-service/general) |
 | 2. Frontend | Done, on **Vercel instead of Netlify** | Next.js app with a BFF. The browser only talks to Vercel and the BFF calls the APIs server-side, so the APIs need no CORS configuration | [Web app README][web-readme]. Frontend URL: <https://taskmaster-hakngrow.vercel.app> (Login required) |
-| 3. Simple CRM instead of TaskFlows | Not taken | | |
+| 3. Simple CRM instead of TaskFlow | Not taken | | |
 | 4. Versioned images | Done | semantic-release derives `MAJOR.MINOR.PATCH` from commit messages; images are also tagged with the commit SHA, and the swarm deploys by digest | [Section 4.4](#44-cicd-and-the-security-gate). Docker Hub tags screenshot in [Section 1.5](#15-live-url-and-screenshots) |
-| 5. Security checks | Done for the users service; tasks API files ready, rollout pending | OWASP Dependency-Check, Trivy image scan, gitleaks over the whole history, and a project script that fails on committed keys, `.env` files or default secrets. All run in CI and gate the release | [Users security checks][users-security], [Tasks security checks][tasks-security] |
+| 5. Security checks | Done for the users and tasks API | OWASP Dependency-Check, Trivy image scan, gitleaks over the whole history, and a project script that fails on committed keys, `.env` files or default secrets. All run in CI and gate the release | [Users security checks][users-security], [Tasks security checks][tasks-security] |
 
 Beyond the brief: two cooperating services with asymmetric JWTs, two replicas of each API across three nodes, rolling updates with automatic rollback, HTTPS, and optional Terraform for the infrastructure.
 
 ### 1.5 Live URL and screenshots
-- **Authentication Endpoint** `https://sctp-aie-m4-apigw.work.gd/auth/login`
+- **Authentication Endpoint:** `https://sctp-aie-m4-apigw.work.gd/auth/login`
 - **Live API:** `https://sctp-aie-m4-apigw.work.gd/api/users` (attach a BEARER token from `POST /auth/login`)
 - **Live API:** `https://sctp-aie-m4-apigw.work.gd/api/tasks` (attach a BEARER token from `POST /auth/login`)
 - **OpenAPI Specification:** [open-api-spec.yaml](open-api-spec.yaml)
@@ -204,7 +204,7 @@ The security design is the thread that runs through every layer:
 - **One public door.** Only Caddy (80, 443) and SSH (22) are reachable from the internet. Databases and Portainer are reached through SSH tunnels.
 - **The token never reaches browser JavaScript.** The BFF keeps it in an httpOnly cookie.
 
-Details: [users authentication][user-auth], [tasks authentication][tasks-auth], [web app][web-readme].
+Details: [users authentication][users-auth], [tasks authentication][tasks-auth], [web app][web-readme].
 
 ### 3.5 Design decisions at a glance
 
@@ -324,7 +324,7 @@ Details: [users CI/CD pipeline][users-deploy], [tasks CI/CD pipeline][tasks-depl
 | `swarm-2` | Manager | API replicas, Portainer agent |
 | `swarm-3` | Manager | API replicas, Portainer server, Portainer agent |
 
-- **VMs, firewall, swarm:** built by hand following the [setup guide][swarm-setup], or by `terraform apply` with the [Terraform project][terraform]. Env files and JWT keys are created by hand on `swarm-1` in both cases, so they never enter Terraform state.
+- **VMs, firewall, swarm:** built by hand following the [setup guide][swarm-setup], or by `terraform apply` with the [Terraform project][swarm-terraform]. Env files and JWT keys are created by hand on `swarm-1` in both cases, so they never enter Terraform state.
 - **Caddy** terminates HTTPS with a Let's Encrypt certificate, routes `/api/tasks*` to the tasks API and everything else to the users service, and returns 404 for `/actuator*`. See the [setup guide][swarm-setup].
 - **Portainer** gives a visual view of replicas and failover for the demo, reachable only through an SSH tunnel to `swarm-3`. See the [setup guide][swarm-setup].
 
@@ -352,8 +352,6 @@ Details: [users CI/CD pipeline][users-deploy], [tasks CI/CD pipeline][tasks-depl
 | Tokens cannot be revoked | Keep them short-lived; a JWKS endpoint with `kid` for key rotation |
 | Env files and keys live only on `swarm-1` | Copy to the other managers, or move every value into Swarm secrets |
 | Demo database ports published on `swarm-1` | Remove after the demo, with their firewall rules |
-
-The project's working status and open items are tracked in [PROJECT-CONTEXT][project-context].
 
 ---
 
